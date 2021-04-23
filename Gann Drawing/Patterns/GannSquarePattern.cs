@@ -1,0 +1,455 @@
+﻿using cAlgo.API;
+using cAlgo.Helpers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace cAlgo.Patterns
+{
+    public class GannSquarePattern : PatternBase
+    {
+        private ChartRectangle _rectangle;
+
+        private ChartTrendLine[] _horizontalTrendLines;
+        private ChartTrendLine[] _verticalTrendLines;
+
+        private readonly Dictionary<string, ChartTrendLine> _fans = new Dictionary<string, ChartTrendLine>();
+
+        public GannSquarePattern(PatternConfig config) : base("Gann Square", config)
+        {
+        }
+
+        protected override void OnPatternChartObjectsUpdated(long id, ChartObject updatedChartObject, ChartObject[] patternObjects)
+        {
+            if (updatedChartObject.ObjectType != ChartObjectType.Rectangle) return;
+
+            var rectangle = updatedChartObject as ChartRectangle;
+
+            var trendLines = patternObjects.Where(iObject => iObject.ObjectType == ChartObjectType.TrendLine).Cast<ChartTrendLine>();
+
+            var horizontalLines = trendLines.Where(iTrendLine => iTrendLine.Name.IndexOf("HorizontalLine", StringComparison.OrdinalIgnoreCase) > -1).ToArray();
+
+            DrawOrUpdateHorizontalLines(rectangle, horizontalLines);
+
+            var verticalLines = trendLines.Where(iTrendLine => iTrendLine.Name.IndexOf("VerticalLine", StringComparison.OrdinalIgnoreCase) > -1).ToArray();
+
+            DrawOrUpdateVerticalLines(rectangle, verticalLines);
+
+            UpdateFans(rectangle, trendLines.Where(iTrendLine => iTrendLine.Name.IndexOf("Fan", StringComparison.OrdinalIgnoreCase) > -1).ToArray());
+        }
+
+        private void UpdateFans(ChartRectangle rectangle, ChartTrendLine[] fans)
+        {
+            var startTime = rectangle.GetStartTime();
+            var endTime = rectangle.GetEndTime();
+
+            var topPrice = rectangle.GetTopPrice();
+            var bottomPrice = rectangle.GetBottomPrice();
+
+            var rectanglePriceDelta = rectangle.GetPriceDelta();
+            var rectangleBarsNumber = rectangle.GetBarsNumber(Chart.Bars);
+
+            var BarsTimeDiffInMilliseconds = Chart.Bars.GetTimeDiff().TotalMilliseconds;
+
+            foreach (var fan in fans)
+            {
+                var fanName = fan.Name.Split('.').Last();
+
+                switch (fanName)
+                {
+                    case "1x1":
+                        fan.Time1 = startTime;
+                        fan.Time2 = endTime;
+                        fan.Y1 = bottomPrice;
+                        fan.Y2 = topPrice;
+                        break;
+
+                    case "1x2":
+                    case "1x3":
+                    case "1x4":
+                    case "1x5":
+                    case "1x8":
+                        {
+                            fan.Time1 = startTime;
+
+                            fan.Y1 = bottomPrice;
+                            fan.Y2 = topPrice;
+
+                            switch (fanName)
+                            {
+                                case "1x2":
+                                    fan.Time2 = startTime.AddMilliseconds(BarsTimeDiffInMilliseconds * (rectangleBarsNumber / 2));
+                                    break;
+
+                                case "1x3":
+                                    fan.Time2 = startTime.AddMilliseconds(BarsTimeDiffInMilliseconds * (rectangleBarsNumber / 3));
+                                    break;
+
+                                case "1x4":
+                                    fan.Time2 = startTime.AddMilliseconds(BarsTimeDiffInMilliseconds * (rectangleBarsNumber / 4));
+                                    break;
+
+                                case "1x5":
+                                    fan.Time2 = startTime.AddMilliseconds(BarsTimeDiffInMilliseconds * (rectangleBarsNumber / 5));
+                                    break;
+
+                                case "1x8":
+                                    fan.Time2 = startTime.AddMilliseconds(BarsTimeDiffInMilliseconds * (rectangleBarsNumber / 8));
+                                    break;
+                            }
+
+                            break;
+                        }
+                    case "2x1":
+                    case "3x1":
+                    case "4x1":
+                    case "5x1":
+                    case "8x1":
+                        {
+                            fan.Time1 = startTime;
+                            fan.Time2 = endTime;
+
+                            fan.Y1 = bottomPrice;
+
+                            switch (fanName)
+                            {
+                                case "2x1":
+                                    fan.Y2 = bottomPrice + (rectanglePriceDelta / 2);
+                                    break;
+
+                                case "3x1":
+                                    fan.Y2 = bottomPrice + (rectanglePriceDelta / 3);
+                                    break;
+
+                                case "4x1":
+                                    fan.Y2 = bottomPrice + (rectanglePriceDelta / 4);
+                                    break;
+
+                                case "5x1":
+                                    fan.Y2 = bottomPrice + (rectanglePriceDelta / 5);
+                                    break;
+
+                                case "8x1":
+                                    fan.Y2 = bottomPrice + (rectanglePriceDelta / 8);
+                                    break;
+                            }
+
+                            break;
+                        }
+                    default:
+                        throw new ArgumentOutOfRangeException("level", "The fan name is outside valid range");
+                }
+            }
+        }
+
+        protected override void OnDrawingStopped()
+        {
+            _rectangle = null;
+            _horizontalTrendLines = null;
+            _verticalTrendLines = null;
+
+            _fans.Clear();
+        }
+
+        protected override void OnMouseUp(ChartMouseEventArgs obj)
+        {
+            if (MouseUpNumber == 2)
+            {
+                FinishDrawing();
+
+                return;
+            }
+
+            if (_rectangle == null)
+            {
+                var name = GetObjectName("Rectangle");
+
+                _rectangle = Chart.DrawRectangle(name, obj.TimeValue, obj.YValue, obj.TimeValue, obj.YValue, Color);
+
+                _rectangle.IsInteractive = true;
+            }
+        }
+
+        protected override void OnMouseMove(ChartMouseEventArgs obj)
+        {
+            if (MouseUpNumber > 1 || _rectangle == null) return;
+
+            _rectangle.Time2 = obj.TimeValue;
+            _rectangle.Y2 = obj.YValue;
+
+            _horizontalTrendLines = new ChartTrendLine[4];
+
+            DrawOrUpdateHorizontalLines(_rectangle, _horizontalTrendLines);
+
+            _verticalTrendLines = new ChartTrendLine[4];
+
+            DrawOrUpdateVerticalLines(_rectangle, _verticalTrendLines);
+
+            DrawFans(_rectangle);
+        }
+
+        private void DrawFans(ChartRectangle rectangle)
+        {
+            var startTime = rectangle.GetStartTime();
+            var endTime = rectangle.GetEndTime();
+
+            var topPrice = rectangle.GetTopPrice();
+            var bottomPrice = rectangle.GetBottomPrice();
+
+            var rectangleTimeDelta = rectangle.GetTimeDelta();
+            var rectanglePriceDelta = rectangle.GetPriceDelta();
+
+            var levels = new[] { 1, 2, 3, 4, 5, 8, -2, -3, -4, -5, -8 };
+
+            foreach (var level in levels)
+            {
+                string name = null;
+                DateTime firstTime;
+                DateTime secondTime = endTime;
+                double firstPrice;
+                double secondPrice = topPrice;
+
+                switch (level)
+                {
+                    case 1:
+                        name = "1x1";
+                        firstTime = startTime;
+                        secondTime = endTime;
+                        firstPrice = bottomPrice;
+                        secondPrice = topPrice;
+                        break;
+
+                    case 2:
+                    case 3:
+                    case 4:
+                    case 5:
+                    case 8:
+                        {
+                            name = string.Format("1x{0}", level);
+                            firstTime = startTime;
+                            firstPrice = bottomPrice;
+                            secondPrice = topPrice;
+
+                            switch (level)
+                            {
+                                case 2:
+                                    secondTime = startTime.AddMilliseconds(rectangleTimeDelta.TotalMilliseconds / 2);
+                                    break;
+
+                                case 3:
+                                    secondTime = startTime.AddMilliseconds(rectangleTimeDelta.TotalMilliseconds / 3);
+                                    break;
+
+                                case 4:
+                                    secondTime = startTime.AddMilliseconds(rectangleTimeDelta.TotalMilliseconds / 4);
+                                    break;
+
+                                case 5:
+                                    secondTime = startTime.AddMilliseconds(rectangleTimeDelta.TotalMilliseconds / 5);
+                                    break;
+
+                                case 8:
+                                    secondTime = startTime.AddMilliseconds(rectangleTimeDelta.TotalMilliseconds / 8);
+                                    break;
+                            }
+
+                            break;
+                        }
+                    case -2:
+                    case -3:
+                    case -4:
+                    case -5:
+                    case -8:
+                        {
+                            name = string.Format("{0}x1", Math.Abs(level));
+                            firstTime = startTime;
+                            firstPrice = bottomPrice;
+                            secondTime = endTime;
+
+                            switch (level)
+                            {
+                                case -2:
+                                    secondPrice = bottomPrice + (rectanglePriceDelta / 2);
+                                    break;
+
+                                case -3:
+                                    secondPrice = bottomPrice + (rectanglePriceDelta / 3);
+                                    break;
+
+                                case -4:
+                                    secondPrice = bottomPrice + (rectanglePriceDelta / 4);
+                                    break;
+
+                                case -5:
+                                    secondPrice = bottomPrice + (rectanglePriceDelta / 5);
+                                    break;
+
+                                case -8:
+                                    secondPrice = bottomPrice + (rectanglePriceDelta / 8);
+                                    break;
+                            }
+
+                            break;
+                        }
+                    default:
+                        throw new ArgumentOutOfRangeException("level", "The fan level is outside valid range");
+                }
+
+                if (string.IsNullOrWhiteSpace(name)) continue;
+
+                var objectName = GetObjectName(string.Format("Fan.{0}", name));
+
+                var trendLine = Chart.DrawTrendLine(objectName, firstTime, firstPrice, secondTime, secondPrice, Color);
+
+                trendLine.IsInteractive = true;
+                trendLine.IsLocked = true;
+
+                _fans[name] = trendLine;
+            }
+        }
+
+        private void DrawOrUpdateHorizontalLines(ChartRectangle rectangle, ChartTrendLine[] horizontalLines)
+        {
+            var startTime = rectangle.GetStartTime();
+            var endTime = rectangle.GetEndTime();
+
+            var verticalDelta = rectangle.GetPriceDelta();
+
+            var lineLevels = new double[]
+            {
+                verticalDelta * 0.2,
+                verticalDelta * 0.4,
+                verticalDelta * 0.6,
+                verticalDelta * 0.8,
+            };
+
+            for (int i = 0; i < lineLevels.Length; i++)
+            {
+                var level = rectangle.Y2 > rectangle.Y1 ? rectangle.Y1 + lineLevels[i] : rectangle.Y1 - lineLevels[i];
+
+                var horizontalLine = horizontalLines[i];
+
+                if (horizontalLine == null)
+                {
+                    var objectName = GetObjectName(string.Format("HorizontalLine{0}", i + 1));
+
+                    horizontalLines[i] = Chart.DrawTrendLine(objectName, startTime, level, endTime, level, Color);
+
+                    horizontalLines[i].IsInteractive = true;
+                    horizontalLines[i].IsLocked = true;
+                }
+                else
+                {
+                    horizontalLine.Time1 = startTime;
+                    horizontalLine.Time2 = endTime;
+
+                    horizontalLine.Y1 = level;
+                    horizontalLine.Y2 = level;
+                }
+            }
+        }
+
+        private void DrawOrUpdateVerticalLines(ChartRectangle rectangle, ChartTrendLine[] verticalLines)
+        {
+            var startBarIndex = rectangle.GetStartBarIndex(Chart.Bars);
+            var endBarIndex = rectangle.GetEndBarIndex(Chart.Bars);
+
+            var diff = endBarIndex - startBarIndex;
+
+            var lineLevels = new double[]
+            {
+                diff * 0.2,
+                diff * 0.4,
+                diff * 0.6,
+                diff * 0.8,
+            };
+
+            for (int i = 0; i < lineLevels.Length; i++)
+            {
+                var barIndex = startBarIndex + lineLevels[i];
+
+                var time = Chart.Bars.GetOpenTime(barIndex);
+
+                var verticalLine = verticalLines[i];
+
+                if (verticalLine == null)
+                {
+                    var objectName = GetObjectName(string.Format("VerticalLine{0}", i + 1));
+
+                    verticalLines[i] = Chart.DrawTrendLine(objectName, time, rectangle.Y1, time, rectangle.Y2, Color);
+
+                    verticalLines[i].IsInteractive = true;
+                    verticalLines[i].IsLocked = true;
+                }
+                else
+                {
+                    verticalLine.Time1 = time;
+                    verticalLine.Time2 = time;
+
+                    verticalLine.Y1 = rectangle.Y1;
+                    verticalLine.Y2 = rectangle.Y2;
+                }
+            }
+        }
+
+        protected override void DrawLabels()
+        {
+            if (_rectangle == null || _horizontalTrendLines == null || _verticalTrendLines == null) return;
+
+            DrawLabels(_rectangle, _horizontalTrendLines, _verticalTrendLines, Id);
+        }
+
+        private void DrawLabels(ChartRectangle rectangle, ChartTrendLine[] horizontalLines, ChartTrendLine[] verticalLines, long id)
+        {
+            DrawLabelText(Math.Round(rectangle.GetPriceDelta(), Chart.Symbol.Digits).ToString(), rectangle.GetStartTime(), rectangle.GetTopPrice(), id, objectNameKey: "Price", fontSize: 10);
+            DrawLabelText(rectangle.GetBarsNumber(Chart.Bars).ToString(), rectangle.GetEndTime(), rectangle.GetBottomPrice(), id, objectNameKey: "BarsNumber", fontSize: 10);
+            DrawLabelText(rectangle.GetPriceToBarsRatio(Chart.Bars).ToString("0." + new string('#', 339)), rectangle.GetEndTime(), rectangle.GetTopPrice(), id, objectNameKey: "PriceToBarsRatio", fontSize: 10);
+        }
+
+        protected override void UpdateLabels(long id, ChartObject chartObject, ChartText[] labels, ChartObject[] patternObjects)
+        {
+            var rectangle = patternObjects.FirstOrDefault(iObject => iObject is ChartRectangle) as ChartRectangle;
+
+            var trendLines = patternObjects.Where(iObject => iObject.ObjectType == ChartObjectType.TrendLine).Cast<ChartTrendLine>();
+
+            var horizontalLines = trendLines.Where(iTrendLine => iTrendLine.Name.IndexOf("HorizontalLine", StringComparison.OrdinalIgnoreCase) > -1).ToArray();
+
+            var verticalLines = trendLines.Where(iTrendLine => iTrendLine.Name.IndexOf("VerticalLine", StringComparison.OrdinalIgnoreCase) > -1).ToArray();
+
+            if (rectangle == null || horizontalLines == null || verticalLines == null) return;
+
+            if (labels.Length == 0)
+            {
+                DrawLabels(rectangle, horizontalLines, verticalLines, id);
+
+                return;
+            }
+
+            foreach (var label in labels)
+            {
+                var labelKey = label.Name.Split('_').Last();
+
+                switch (labelKey)
+                {
+                    case "Price":
+                        label.Text = Math.Round(rectangle.GetPriceDelta(), Chart.Symbol.Digits).ToString();
+                        label.Time = rectangle.GetStartTime();
+                        label.Y = rectangle.GetTopPrice();
+                        break;
+
+                    case "BarsNumber":
+                        label.Text = rectangle.GetBarsNumber(Chart.Bars).ToString();
+                        label.Time = rectangle.GetEndTime();
+                        label.Y = rectangle.GetBottomPrice();
+                        break;
+
+                    case "PriceToBarsRatio":
+                        label.Text = rectangle.GetPriceToBarsRatio(Chart.Bars).ToString();
+                        label.Time = rectangle.GetEndTime();
+                        label.Y = rectangle.GetTopPrice();
+                        break;
+                }
+            }
+        }
+    }
+}
