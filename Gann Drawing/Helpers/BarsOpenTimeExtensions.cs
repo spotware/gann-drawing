@@ -14,13 +14,11 @@ namespace cAlgo.Helpers
 
             var indexDiff = barIndex - currentIndex;
 
-            var indexDiffAbs = Math.Abs(indexDiff);
-
             var result = indexDiff <= 0 ? bars.OpenTimes[(int)barIndex] : bars.OpenTimes[currentIndex];
 
             if (indexDiff > 0)
             {
-                for (var i = 1; i <= indexDiffAbs; i++)
+                for (var i = 1; i <= indexDiff; i++)
                 {
                     do
                     {
@@ -29,12 +27,6 @@ namespace cAlgo.Helpers
                     while (result.DayOfWeek == DayOfWeek.Saturday || result.DayOfWeek == DayOfWeek.Sunday);
                 }
             }
-
-            var barIndexFraction = barIndex % 1;
-
-            var barIndexFractionInMinutes = timeDiff.TotalMinutes * barIndexFraction;
-
-            result = result.AddMinutes(barIndexFractionInMinutes);
 
             return result;
         }
