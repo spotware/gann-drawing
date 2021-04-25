@@ -129,8 +129,8 @@ namespace cAlgo.Patterns
 
         private void DrawOrUpdateVerticalLines(ChartRectangle rectangle, ChartTrendLine[] verticalLines)
         {
-            var rectangleFirstBarIndex = Chart.Bars.GetBarIndex(rectangle.Time1);
-            var rectangleSecondBarIndex = Chart.Bars.GetBarIndex(rectangle.Time2);
+            var rectangleFirstBarIndex = Chart.Bars.GetBarIndex(rectangle.Time1, Chart.Symbol);
+            var rectangleSecondBarIndex = Chart.Bars.GetBarIndex(rectangle.Time2, Chart.Symbol);
 
             double startBarIndex, endBarIndex;
 
@@ -160,7 +160,7 @@ namespace cAlgo.Patterns
             {
                 var barIndex = startBarIndex + lineLevels[i];
 
-                var time = Chart.Bars.GetOpenTime(barIndex);
+                var time = Chart.Bars.GetOpenTime(barIndex, Chart.Symbol);
 
                 var verticalLine = verticalLines[i];
 

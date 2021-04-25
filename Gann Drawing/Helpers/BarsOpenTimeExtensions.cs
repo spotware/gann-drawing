@@ -1,4 +1,5 @@
 ﻿using cAlgo.API;
+using cAlgo.API.Internals;
 using System;
 using System.Linq;
 
@@ -6,7 +7,7 @@ namespace cAlgo.Helpers
 {
     public static class BarsOpenTimeExtensions
     {
-        public static DateTime GetOpenTime(this Bars bars, double barIndex)
+        public static DateTime GetOpenTime(this Bars bars, double barIndex, Symbol symbol)
         {
             var currentIndex = bars.Count - 1;
 
@@ -24,40 +25,26 @@ namespace cAlgo.Helpers
                     {
                         result = result.Add(timeDiff);
                     }
-                    while (result.DayOfWeek == DayOfWeek.Saturday || result.DayOfWeek == DayOfWeek.Sunday);
+                    while (!symbol.IsInTradingTime(result));
                 }
             }
 
             return result;
         }
 
-        public static double GetBarIndex(this Bars bars, DateTime time)
+        public static double GetBarIndex(this Bars bars, DateTime time, Symbol symbol)
         {
             if (time <= bars.OpenTimes.LastValue) return bars.OpenTimes.GetIndexByTime(time);
 
             var timeDiff = bars.GetTimeDiff();
 
-            var weekendTime = GetWeekendTime(bars.OpenTimes.LastValue, time, timeDiff);
+            var outsideTradingTime = symbol.GetOutsideTradingTimeAmount(bars.OpenTimes.LastValue, time, timeDiff);
 
-            var timeDiffWithLastTime = (time - bars.OpenTimes.LastValue).Add(-weekendTime);
+            var timeDiffWithLastTime = (time - bars.OpenTimes.LastValue).Add(-outsideTradingTime);
 
             var futureIndex = (bars.Count - 1) + timeDiffWithLastTime.TotalHours / timeDiff.TotalHours;
 
             return futureIndex;
-        }
-
-        public static TimeSpan GetWeekendTime(DateTime startTime, DateTime endTime, TimeSpan interval)
-        {
-            var result = TimeSpan.FromMinutes(0);
-
-            for (var currentTime = endTime; currentTime > startTime; currentTime = currentTime.Add(-interval))
-            {
-                if (currentTime.DayOfWeek != DayOfWeek.Saturday && currentTime.DayOfWeek != DayOfWeek.Sunday) continue;
-
-                result = result.Add(interval);
-            }
-
-            return result;
         }
 
         public static TimeSpan GetTimeDiff(this Bars bars)

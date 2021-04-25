@@ -47,9 +47,9 @@ namespace cAlgo.Patterns
             var bottomPrice = rectangle.GetBottomPrice();
 
             var rectanglePriceDelta = rectangle.GetPriceDelta();
-            var rectangleBarsNumber = rectangle.GetBarsNumber(Chart.Bars);
+            var rectangleBarsNumber = rectangle.GetBarsNumber(Chart.Bars, Chart.Symbol);
 
-            var startBarIndex = rectangle.GetStartBarIndex(Chart.Bars);
+            var startBarIndex = rectangle.GetStartBarIndex(Chart.Bars, Chart.Symbol);
 
             foreach (var fan in fans)
             {
@@ -78,23 +78,23 @@ namespace cAlgo.Patterns
                             switch (fanName)
                             {
                                 case "1x2":
-                                    fan.Time2 = Chart.Bars.GetOpenTime(startBarIndex + (rectangleBarsNumber / 2));
+                                    fan.Time2 = Chart.Bars.GetOpenTime(startBarIndex + (rectangleBarsNumber / 2), Chart.Symbol);
                                     break;
 
                                 case "1x3":
-                                    fan.Time2 = Chart.Bars.GetOpenTime(startBarIndex + (rectangleBarsNumber / 3));
+                                    fan.Time2 = Chart.Bars.GetOpenTime(startBarIndex + (rectangleBarsNumber / 3), Chart.Symbol);
                                     break;
 
                                 case "1x4":
-                                    fan.Time2 = Chart.Bars.GetOpenTime(startBarIndex + (rectangleBarsNumber / 4));
+                                    fan.Time2 = Chart.Bars.GetOpenTime(startBarIndex + (rectangleBarsNumber / 4), Chart.Symbol);
                                     break;
 
                                 case "1x5":
-                                    fan.Time2 = Chart.Bars.GetOpenTime(startBarIndex + (rectangleBarsNumber / 5));
+                                    fan.Time2 = Chart.Bars.GetOpenTime(startBarIndex + (rectangleBarsNumber / 5), Chart.Symbol);
                                     break;
 
                                 case "1x8":
-                                    fan.Time2 = Chart.Bars.GetOpenTime(startBarIndex + (rectangleBarsNumber / 8));
+                                    fan.Time2 = Chart.Bars.GetOpenTime(startBarIndex + (rectangleBarsNumber / 8), Chart.Symbol);
                                     break;
                             }
 
@@ -197,9 +197,9 @@ namespace cAlgo.Patterns
             var bottomPrice = rectangle.GetBottomPrice();
 
             var rectanglePriceDelta = rectangle.GetPriceDelta();
-            var rectangleBarsNumber = rectangle.GetBarsNumber(Chart.Bars);
+            var rectangleBarsNumber = rectangle.GetBarsNumber(Chart.Bars, Chart.Symbol);
 
-            var startBarIndex = rectangle.GetStartBarIndex(Chart.Bars);
+            var startBarIndex = rectangle.GetStartBarIndex(Chart.Bars, Chart.Symbol);
 
             var levels = new[] { 1, 2, 3, 4, 5, 8, -2, -3, -4, -5, -8 };
 
@@ -235,23 +235,23 @@ namespace cAlgo.Patterns
                             switch (level)
                             {
                                 case 2:
-                                    secondTime = Chart.Bars.GetOpenTime(startBarIndex + (rectangleBarsNumber / 2));
+                                    secondTime = Chart.Bars.GetOpenTime(startBarIndex + (rectangleBarsNumber / 2), Chart.Symbol);
                                     break;
 
                                 case 3:
-                                    secondTime = Chart.Bars.GetOpenTime(startBarIndex + (rectangleBarsNumber / 3));
+                                    secondTime = Chart.Bars.GetOpenTime(startBarIndex + (rectangleBarsNumber / 3), Chart.Symbol);
                                     break;
 
                                 case 4:
-                                    secondTime = Chart.Bars.GetOpenTime(startBarIndex + (rectangleBarsNumber / 4));
+                                    secondTime = Chart.Bars.GetOpenTime(startBarIndex + (rectangleBarsNumber / 4), Chart.Symbol);
                                     break;
 
                                 case 5:
-                                    secondTime = Chart.Bars.GetOpenTime(startBarIndex + (rectangleBarsNumber / 5));
+                                    secondTime = Chart.Bars.GetOpenTime(startBarIndex + (rectangleBarsNumber / 5), Chart.Symbol);
                                     break;
 
                                 case 8:
-                                    secondTime = Chart.Bars.GetOpenTime(startBarIndex + (rectangleBarsNumber / 8));
+                                    secondTime = Chart.Bars.GetOpenTime(startBarIndex + (rectangleBarsNumber / 8), Chart.Symbol);
                                     break;
                             }
 
@@ -353,9 +353,9 @@ namespace cAlgo.Patterns
 
         private void DrawOrUpdateVerticalLines(ChartRectangle rectangle, ChartTrendLine[] verticalLines)
         {
-            var startBarIndex = rectangle.GetStartBarIndex(Chart.Bars);
+            var startBarIndex = rectangle.GetStartBarIndex(Chart.Bars, Chart.Symbol);
 
-            var barsNumber = rectangle.GetBarsNumber(Chart.Bars);
+            var barsNumber = rectangle.GetBarsNumber(Chart.Bars, Chart.Symbol);
 
             var lineLevels = new double[]
             {
@@ -369,7 +369,7 @@ namespace cAlgo.Patterns
             {
                 var barIndex = startBarIndex + lineLevels[i];
 
-                var time = Chart.Bars.GetOpenTime(barIndex);
+                var time = Chart.Bars.GetOpenTime(barIndex, Chart.Symbol);
 
                 var verticalLine = verticalLines[i];
 
@@ -403,8 +403,8 @@ namespace cAlgo.Patterns
         private void DrawLabels(ChartRectangle rectangle, long id)
         {
             DrawLabelText(Math.Round(rectangle.GetPriceDelta(), Chart.Symbol.Digits).ToString(), rectangle.GetStartTime(), rectangle.GetTopPrice(), id, objectNameKey: "Price", fontSize: 10);
-            DrawLabelText(rectangle.GetBarsNumber(Chart.Bars).ToString(), rectangle.GetEndTime(), rectangle.GetBottomPrice(), id, objectNameKey: "BarsNumber", fontSize: 10);
-            DrawLabelText(rectangle.GetPriceToBarsRatio(Chart.Bars).ToString("0." + new string('#', 339)), rectangle.GetEndTime(), rectangle.GetTopPrice(), id, objectNameKey: "PriceToBarsRatio", fontSize: 10);
+            DrawLabelText(rectangle.GetBarsNumber(Chart.Bars, Chart.Symbol).ToString(), rectangle.GetEndTime(), rectangle.GetBottomPrice(), id, objectNameKey: "BarsNumber", fontSize: 10);
+            DrawLabelText(rectangle.GetPriceToBarsRatio(Chart.Bars, Chart.Symbol).ToString("0." + new string('#', 339)), rectangle.GetEndTime(), rectangle.GetTopPrice(), id, objectNameKey: "PriceToBarsRatio", fontSize: 10);
         }
 
         protected override void UpdateLabels(long id, ChartObject chartObject, ChartText[] labels, ChartObject[] patternObjects)
@@ -435,13 +435,13 @@ namespace cAlgo.Patterns
                         break;
 
                     case "BarsNumber":
-                        label.Text = rectangle.GetBarsNumber(Chart.Bars).ToString();
+                        label.Text = rectangle.GetBarsNumber(Chart.Bars, Chart.Symbol).ToString();
                         label.Time = rectangle.GetEndTime();
                         label.Y = rectangle.GetBottomPrice();
                         break;
 
                     case "PriceToBarsRatio":
-                        label.Text = rectangle.GetPriceToBarsRatio(Chart.Bars).ToString();
+                        label.Text = rectangle.GetPriceToBarsRatio(Chart.Bars, Chart.Symbol).ToString();
                         label.Time = rectangle.GetEndTime();
                         label.Y = rectangle.GetTopPrice();
                         break;

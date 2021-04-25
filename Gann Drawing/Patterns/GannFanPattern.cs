@@ -92,7 +92,7 @@ namespace cAlgo.Patterns
             {
                 var name = GetObjectName("1x1");
 
-                _mainFan = Chart.DrawTrendLine(name, obj.TimeValue, obj.YValue, obj.TimeValue, obj.YValue, Color);
+                _mainFan = Chart.DrawTrendLine(name, obj.TimeValue, obj.YValue, obj.TimeValue, obj.YValue, Color, 2, LineStyle.Dots);
 
                 _mainFan.IsInteractive = true;
                 _mainFan.ExtendToInfinity = true;
@@ -139,7 +139,7 @@ namespace cAlgo.Patterns
 
                 var objectName = GetObjectName(name);
 
-                var trendLine = Chart.DrawTrendLine(objectName, mainFan.Time1, mainFan.Y1, mainFan.Time2, y2, Color, 1, LineStyle.Dots);
+                var trendLine = Chart.DrawTrendLine(objectName, mainFan.Time1, mainFan.Y1, mainFan.Time2, y2, Color);
 
                 trendLine.IsInteractive = true;
                 trendLine.IsLocked = true;

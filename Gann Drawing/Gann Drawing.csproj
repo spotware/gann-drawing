@@ -71,6 +71,7 @@
     <Compile Include="Helpers\ChartTrendLineCenterExtensions.cs" />
     <Compile Include="Helpers\ColorParser.cs" />
     <Compile Include="Gann Drawing.cs" />
+    <Compile Include="Helpers\SymbolTradingSessionExtensions.cs" />
     <Compile Include="Patterns\GannFanPattern.cs" />
     <Compile Include="Patterns\GannSquarePattern.cs" />
     <Compile Include="Patterns\GannBoxPattern.cs" />
