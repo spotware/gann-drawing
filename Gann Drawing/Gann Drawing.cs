@@ -21,12 +21,6 @@ namespace cAlgo
 
         private Style _buttonsStyle;
 
-        [Parameter("Color", DefaultValue = "Red", Group = "Patterns Color")]
-        public string PatternsColor { get; set; }
-
-        [Parameter("Alpha", DefaultValue = 100, MinValue = 0, MaxValue = 255, Group = "Patterns Color")]
-        public int PatternsColorAlpha { get; set; }
-
         [Parameter("Show", DefaultValue = true, Group = "Patterns Label")]
         public bool PatternsLabelShow { get; set; }
 
@@ -222,10 +216,9 @@ namespace cAlgo
             _buttonsStyle.Set(ControlProperty.VerticalContentAlignment, VerticalAlignment.Center);
             _buttonsStyle.Set(ControlProperty.Opacity, ButtonsTransparency);
 
-            var patternsColor = ColorParser.Parse(PatternsColor, PatternsColorAlpha);
             var patternsLabelsColor = ColorParser.Parse(PatternsLabelColor, PatternsLabelColorAlpha);
 
-            var patternConfig = new PatternConfig(Chart, patternsColor, PatternsLabelShow, patternsLabelsColor, PatternsLabelInteractive)
+            var patternConfig = new PatternConfig(Chart, Color.Black, PatternsLabelShow, patternsLabelsColor, PatternsLabelInteractive)
             {
                 Print = Print
             };
