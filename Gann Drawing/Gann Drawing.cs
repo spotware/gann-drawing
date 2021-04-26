@@ -75,6 +75,114 @@ namespace cAlgo
         [Parameter("Only Buttons", Group = "TimeFrame Visibility")]
         public bool VisibilityOnlyButtons { get; set; }
 
+        [Parameter("Rectangle Thickness", DefaultValue = 1, MinValue = 1, Group = "Gann Box")]
+        public int GannBoxRectangleThickness { get; set; }
+
+        [Parameter("Rectangle Style", DefaultValue = LineStyle.Solid, Group = "Gann Box")]
+        public LineStyle GannBoxRectangleStyle { get; set; }
+
+        [Parameter("Rectangle Color", DefaultValue = "Blue", Group = "Gann Box")]
+        public string GannBoxRectangleColor { get; set; }
+
+        [Parameter("Price Levels Thickness", DefaultValue = 1, MinValue = 1, Group = "Gann Box")]
+        public int GannBoxPriceLevelsThickness { get; set; }
+
+        [Parameter("Price Levels Style", DefaultValue = LineStyle.Solid, Group = "Gann Box")]
+        public LineStyle GannBoxPriceLevelsStyle { get; set; }
+
+        [Parameter("Price Levels Color", DefaultValue = "Magenta", Group = "Gann Box")]
+        public string GannBoxPriceLevelsColor { get; set; }
+
+        [Parameter("Time Levels Thickness", DefaultValue = 1, MinValue = 1, Group = "Gann Box")]
+        public int GannBoxTimeLevelsThickness { get; set; }
+
+        [Parameter("Time Levels Style", DefaultValue = LineStyle.Solid, Group = "Gann Box")]
+        public LineStyle GannBoxTimeLevelsStyle { get; set; }
+
+        [Parameter("Time Levels Color", DefaultValue = "Yellow", Group = "Gann Box")]
+        public string GannBoxTimeLevelsColor { get; set; }
+
+        [Parameter("Rectangle Thickness", DefaultValue = 1, MinValue = 1, Group = "Gann Square")]
+        public int GannSquareRectangleThickness { get; set; }
+
+        [Parameter("Rectangle Style", DefaultValue = LineStyle.Solid, Group = "Gann Square")]
+        public LineStyle GannSquareRectangleStyle { get; set; }
+
+        [Parameter("Rectangle Color", DefaultValue = "Blue", Group = "Gann Square")]
+        public string GannSquareRectangleColor { get; set; }
+
+        [Parameter("Price Levels Thickness", DefaultValue = 1, MinValue = 1, Group = "Gann Square")]
+        public int GannSquarePriceLevelsThickness { get; set; }
+
+        [Parameter("Price Levels Style", DefaultValue = LineStyle.Solid, Group = "Gann Square")]
+        public LineStyle GannSquarePriceLevelsStyle { get; set; }
+
+        [Parameter("Price Levels Color", DefaultValue = "Magenta", Group = "Gann Square")]
+        public string GannSquarePriceLevelsColor { get; set; }
+
+        [Parameter("Time Levels Thickness", DefaultValue = 1, MinValue = 1, Group = "Gann Square")]
+        public int GannSquareTimeLevelsThickness { get; set; }
+
+        [Parameter("Time Levels Style", DefaultValue = LineStyle.Solid, Group = "Gann Square")]
+        public LineStyle GannSquareTimeLevelsStyle { get; set; }
+
+        [Parameter("Time Levels Color", DefaultValue = "Yellow", Group = "Gann Square")]
+        public string GannSquareTimeLevelsColor { get; set; }
+
+        [Parameter("Fans Thickness", DefaultValue = 1, MinValue = 1, Group = "Gann Square")]
+        public int GannSquareFansThickness { get; set; }
+
+        [Parameter("Fans Style", DefaultValue = LineStyle.Solid, Group = "Gann Square")]
+        public LineStyle GannSquareFansStyle { get; set; }
+
+        [Parameter("Fans Color", DefaultValue = "Brown", Group = "Gann Square")]
+        public string GannSquareFansColor { get; set; }
+
+        [Parameter("1/1 Thickness", DefaultValue = 1, MinValue = 1, Group = "Gann Fan")]
+        public int GannFanOneThickness { get; set; }
+
+        [Parameter("1/1 Style", DefaultValue = LineStyle.Solid, Group = "Gann Fan")]
+        public LineStyle GannFanOneStyle { get; set; }
+
+        [Parameter("1/1 Color", DefaultValue = "Red", Group = "Gann Fan")]
+        public string GannFanOneColor { get; set; }
+
+        [Parameter("1/2 and 2/1 Thickness", DefaultValue = 1, MinValue = 1, Group = "Gann Fan")]
+        public int GannFanTwoThickness { get; set; }
+
+        [Parameter("1/2 and 2/1 Style", DefaultValue = LineStyle.Solid, Group = "Gann Fan")]
+        public LineStyle GannFanTwoStyle { get; set; }
+
+        [Parameter("1/2 and 2/1 Color", DefaultValue = "Brown", Group = "Gann Fan")]
+        public string GannFanTwoColor { get; set; }
+
+        [Parameter("1/3 and 3/1 Thickness", DefaultValue = 1, MinValue = 1, Group = "Gann Fan")]
+        public int GannFanThreeThickness { get; set; }
+
+        [Parameter("1/3 and 3/1 Style", DefaultValue = LineStyle.Solid, Group = "Gann Fan")]
+        public LineStyle GannFanThreeStyle { get; set; }
+
+        [Parameter("1/3 and 3/1 Color", DefaultValue = "Lime", Group = "Gann Fan")]
+        public string GannFanThreeColor { get; set; }
+
+        [Parameter("1/4 and 4/1 Thickness", DefaultValue = 1, MinValue = 1, Group = "Gann Fan")]
+        public int GannFanFourThickness { get; set; }
+
+        [Parameter("1/4 and 4/1 Style", DefaultValue = LineStyle.Solid, Group = "Gann Fan")]
+        public LineStyle GannFanFourStyle { get; set; }
+
+        [Parameter("1/4 and 4/1 Color", DefaultValue = "Magenta", Group = "Gann Fan")]
+        public string GannFanFourColor { get; set; }
+
+        [Parameter("1/8 and 8/1 Thickness", DefaultValue = 1, MinValue = 1, Group = "Gann Fan")]
+        public int GannFanEightThickness { get; set; }
+
+        [Parameter("1/8 and 8/1 Style", DefaultValue = LineStyle.Solid, Group = "Gann Fan")]
+        public LineStyle GannFanEightStyle { get; set; }
+
+        [Parameter("1/8 and 8/1 Color", DefaultValue = "Blue", Group = "Gann Fan")]
+        public string GannFanEightColor { get; set; }
+
         protected override void Initialize()
         {
             _mainPanel = new StackPanel
@@ -122,9 +230,53 @@ namespace cAlgo
                 Print = Print
             };
 
-            AddPatternButton(new GannBoxPattern(patternConfig));
-            AddPatternButton(new GannSquarePattern(patternConfig));
-            AddPatternButton(new GannFanPattern(patternConfig));
+            AddPatternButton(new GannBoxPattern(patternConfig, new GannBoxSettings
+            {
+                RectangleThickness = GannBoxRectangleThickness,
+                RectangleStyle = GannBoxRectangleStyle,
+                RectangleColor = ColorParser.Parse(GannBoxRectangleColor),
+                PriceLevelsThickness = GannBoxPriceLevelsThickness,
+                PriceLevelsStyle = GannBoxPriceLevelsStyle,
+                PriceLevelsColor = ColorParser.Parse(GannBoxPriceLevelsColor),
+                TimeLevelsThickness = GannBoxTimeLevelsThickness,
+                TimeLevelsStyle = GannBoxTimeLevelsStyle,
+                TimeLevelsColor = ColorParser.Parse(GannBoxTimeLevelsColor),
+            }));
+
+            AddPatternButton(new GannSquarePattern(patternConfig, new GannSquareSettings
+            {
+                RectangleThickness = GannSquareRectangleThickness,
+                RectangleStyle = GannSquareRectangleStyle,
+                RectangleColor = ColorParser.Parse(GannSquareRectangleColor),
+                PriceLevelsThickness = GannSquarePriceLevelsThickness,
+                PriceLevelsStyle = GannSquarePriceLevelsStyle,
+                PriceLevelsColor = ColorParser.Parse(GannSquarePriceLevelsColor),
+                TimeLevelsThickness = GannSquareTimeLevelsThickness,
+                TimeLevelsStyle = GannSquareTimeLevelsStyle,
+                TimeLevelsColor = ColorParser.Parse(GannSquareTimeLevelsColor),
+                FansThickness = GannSquareFansThickness,
+                FansStyle = GannSquareFansStyle,
+                FansColor = ColorParser.Parse(GannSquareFansColor),
+            }));
+
+            AddPatternButton(new GannFanPattern(patternConfig, new GannFanSettings
+            {
+                OneThickness = GannFanOneThickness,
+                OneStyle = GannFanOneStyle,
+                OneColor = ColorParser.Parse(GannFanOneColor),
+                TwoThickness = GannFanTwoThickness,
+                TwoStyle = GannFanTwoStyle,
+                TwoColor = ColorParser.Parse(GannFanTwoColor),
+                ThreeThickness = GannFanThreeThickness,
+                ThreeStyle = GannFanThreeStyle,
+                ThreeColor = ColorParser.Parse(GannFanThreeColor),
+                FourThickness = GannFanFourThickness,
+                FourStyle = GannFanFourStyle,
+                FourColor = ColorParser.Parse(GannFanFourColor),
+                EightThickness = GannFanEightThickness,
+                EightStyle = GannFanEightStyle,
+                EightColor = ColorParser.Parse(GannFanEightColor),
+            }));
 
             var showHideButton = new Controls.ToggleButton()
             {

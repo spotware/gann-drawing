@@ -7,13 +7,16 @@ namespace cAlgo.Patterns
 {
     public class GannBoxPattern : PatternBase
     {
+        private readonly GannBoxSettings _settings;
+
         private ChartRectangle _rectangle;
 
         private ChartTrendLine[] _horizontalTrendLines;
         private ChartTrendLine[] _verticalTrendLines;
 
-        public GannBoxPattern(PatternConfig config) : base("Gann Box", config)
+        public GannBoxPattern(PatternConfig config, GannBoxSettings settings) : base("Gann Box", config)
         {
+            _settings = settings;
         }
 
         protected override void OnPatternChartObjectsUpdated(long id, ChartObject updatedChartObject, ChartObject[] patternObjects)
@@ -53,7 +56,7 @@ namespace cAlgo.Patterns
             {
                 var name = GetObjectName("Rectangle");
 
-                _rectangle = Chart.DrawRectangle(name, obj.TimeValue, obj.YValue, obj.TimeValue, obj.YValue, Color);
+                _rectangle = Chart.DrawRectangle(name, obj.TimeValue, obj.YValue, obj.TimeValue, obj.YValue, _settings.RectangleColor, _settings.RectangleThickness, _settings.RectangleStyle);
 
                 _rectangle.IsInteractive = true;
             }
@@ -111,7 +114,7 @@ namespace cAlgo.Patterns
                 {
                     var objectName = GetObjectName(string.Format("HorizontalLine{0}", i + 1));
 
-                    horizontalLines[i] = Chart.DrawTrendLine(objectName, startTime, level, endTime, level, Color);
+                    horizontalLines[i] = Chart.DrawTrendLine(objectName, startTime, level, endTime, level, _settings.PriceLevelsColor, _settings.PriceLevelsThickness, _settings.PriceLevelsStyle);
 
                     horizontalLines[i].IsInteractive = true;
                     horizontalLines[i].IsLocked = true;
@@ -168,7 +171,7 @@ namespace cAlgo.Patterns
                 {
                     var objectName = GetObjectName(string.Format("VerticalLine{0}", i + 1));
 
-                    verticalLines[i] = Chart.DrawTrendLine(objectName, time, rectangle.Y1, time, rectangle.Y2, Color);
+                    verticalLines[i] = Chart.DrawTrendLine(objectName, time, rectangle.Y1, time, rectangle.Y2, _settings.TimeLevelsColor, _settings.TimeLevelsThickness, _settings.TimeLevelsStyle);
 
                     verticalLines[i].IsInteractive = true;
                     verticalLines[i].IsLocked = true;

@@ -14,9 +14,11 @@ namespace cAlgo.Patterns
         private ChartTrendLine[] _verticalTrendLines;
 
         private readonly Dictionary<string, ChartTrendLine> _fans = new Dictionary<string, ChartTrendLine>();
+        private readonly GannSquareSettings _settings;
 
-        public GannSquarePattern(PatternConfig config) : base("Gann Square", config)
+        public GannSquarePattern(PatternConfig config, GannSquareSettings settings) : base("Gann Square", config)
         {
+            _settings = settings;
         }
 
         protected override void OnPatternChartObjectsUpdated(long id, ChartObject updatedChartObject, ChartObject[] patternObjects)
@@ -164,7 +166,7 @@ namespace cAlgo.Patterns
             {
                 var name = GetObjectName("Rectangle");
 
-                _rectangle = Chart.DrawRectangle(name, obj.TimeValue, obj.YValue, obj.TimeValue, obj.YValue, Color);
+                _rectangle = Chart.DrawRectangle(name, obj.TimeValue, obj.YValue, obj.TimeValue, obj.YValue, _settings.RectangleColor, _settings.RectangleThickness, _settings.RectangleStyle);
 
                 _rectangle.IsInteractive = true;
             }
@@ -301,7 +303,7 @@ namespace cAlgo.Patterns
 
                 var objectName = GetObjectName(string.Format("Fan.{0}", name));
 
-                var trendLine = Chart.DrawTrendLine(objectName, firstTime, firstPrice, secondTime, secondPrice, Color);
+                var trendLine = Chart.DrawTrendLine(objectName, firstTime, firstPrice, secondTime, secondPrice, _settings.FansColor, _settings.FansThickness, _settings.FansStyle);
 
                 trendLine.IsInteractive = true;
                 trendLine.IsLocked = true;
@@ -335,7 +337,7 @@ namespace cAlgo.Patterns
                 {
                     var objectName = GetObjectName(string.Format("HorizontalLine{0}", i + 1));
 
-                    horizontalLines[i] = Chart.DrawTrendLine(objectName, startTime, level, endTime, level, Color);
+                    horizontalLines[i] = Chart.DrawTrendLine(objectName, startTime, level, endTime, level, _settings.PriceLevelsColor, _settings.PriceLevelsThickness, _settings.PriceLevelsStyle);
 
                     horizontalLines[i].IsInteractive = true;
                     horizontalLines[i].IsLocked = true;
@@ -377,7 +379,7 @@ namespace cAlgo.Patterns
                 {
                     var objectName = GetObjectName(string.Format("VerticalLine{0}", i + 1));
 
-                    verticalLines[i] = Chart.DrawTrendLine(objectName, time, rectangle.Y1, time, rectangle.Y2, Color);
+                    verticalLines[i] = Chart.DrawTrendLine(objectName, time, rectangle.Y1, time, rectangle.Y2, _settings.TimeLevelsColor, _settings.TimeLevelsThickness, _settings.TimeLevelsStyle);
 
                     verticalLines[i].IsInteractive = true;
                     verticalLines[i].IsLocked = true;

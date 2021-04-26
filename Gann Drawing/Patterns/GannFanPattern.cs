@@ -14,9 +14,11 @@ namespace cAlgo.Patterns
         private readonly double[] _percents = new[] { 0.416, 0.583, 0.666, 0.833 };
 
         private readonly int[] _fanLevels = new[] { 2, 3, 4, 8, -2, -3, -4, -8 };
+        private readonly GannFanSettings _settings;
 
-        public GannFanPattern(PatternConfig config) : base("Gann Fan", config)
+        public GannFanPattern(PatternConfig config, GannFanSettings settings) : base("Gann Fan", config)
         {
+            _settings = settings;
         }
 
         protected override void OnPatternChartObjectsUpdated(long id, ChartObject updatedChartObject, ChartObject[] patternObjects)
@@ -92,7 +94,7 @@ namespace cAlgo.Patterns
             {
                 var name = GetObjectName("1x1");
 
-                _mainFan = Chart.DrawTrendLine(name, obj.TimeValue, obj.YValue, obj.TimeValue, obj.YValue, Color, 2, LineStyle.Dots);
+                _mainFan = Chart.DrawTrendLine(name, obj.TimeValue, obj.YValue, obj.TimeValue, obj.YValue, _settings.OneColor, _settings.OneThickness, _settings.OneStyle);
 
                 _mainFan.IsInteractive = true;
                 _mainFan.ExtendToInfinity = true;
@@ -139,7 +141,45 @@ namespace cAlgo.Patterns
 
                 var objectName = GetObjectName(name);
 
-                var trendLine = Chart.DrawTrendLine(objectName, mainFan.Time1, mainFan.Y1, mainFan.Time2, y2, Color);
+                Color color;
+                int thickness;
+                LineStyle lineStyle;
+
+                switch (name)
+                {
+                    case "1x2":
+                    case "2x1":
+                        color = _settings.TwoColor;
+                        thickness = _settings.TwoThickness;
+                        lineStyle = _settings.TwoStyle;
+                        break;
+
+                    case "1x3":
+                    case "3x1":
+                        color = _settings.ThreeColor;
+                        thickness = _settings.ThreeThickness;
+                        lineStyle = _settings.ThreeStyle;
+                        break;
+
+                    case "1x4":
+                    case "4x1":
+                        color = _settings.FourColor;
+                        thickness = _settings.FourThickness;
+                        lineStyle = _settings.FourStyle;
+                        break;
+
+                    case "1x8":
+                    case "8x1":
+                        color = _settings.EightColor;
+                        thickness = _settings.EightThickness;
+                        lineStyle = _settings.EightStyle;
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException(name, "Invalid fan name");
+                }
+
+                var trendLine = Chart.DrawTrendLine(objectName, mainFan.Time1, mainFan.Y1, mainFan.Time2, y2, color, thickness, lineStyle);
 
                 trendLine.IsInteractive = true;
                 trendLine.IsLocked = true;
