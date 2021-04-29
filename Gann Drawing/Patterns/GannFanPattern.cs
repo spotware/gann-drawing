@@ -21,8 +21,6 @@ namespace cAlgo.Patterns
             _settings = settings;
         }
 
-        protected override ChartObject MainObject { get { return _mainFan; } }
-
         protected override void OnPatternChartObjectsUpdated(long id, ChartObject updatedChartObject, ChartObject[] patternObjects)
         {
             if (updatedChartObject.ObjectType != ChartObjectType.TrendLine) return;
@@ -250,6 +248,11 @@ namespace cAlgo.Patterns
                 label.Time = line.Time2;
                 label.Y = line.Y2;
             }
+        }
+
+        protected override ChartObject[] GetFrontObjects()
+        {
+            return new ChartObject[] { _mainFan };
         }
     }
 }

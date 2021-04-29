@@ -19,8 +19,6 @@ namespace cAlgo.Patterns
             _settings = settings;
         }
 
-        protected override ChartObject MainObject { get { return _rectangle; } }
-
         protected override void OnPatternChartObjectsUpdated(long id, ChartObject updatedChartObject, ChartObject[] patternObjects)
         {
             if (updatedChartObject.ObjectType != ChartObjectType.Rectangle) return;
@@ -482,6 +480,11 @@ namespace cAlgo.Patterns
                         }
                 }
             }
+        }
+
+        protected override ChartObject[] GetFrontObjects()
+        {
+            return new ChartObject[] { _rectangle };
         }
     }
 }

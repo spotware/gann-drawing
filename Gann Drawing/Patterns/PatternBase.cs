@@ -66,8 +66,6 @@ namespace cAlgo.Patterns
 
         public event Action<IPattern> DrawingStopped;
 
-        protected virtual ChartObject MainObject { get { return null; } }
-
         public void Initialize()
         {
             OnInitialize();
@@ -130,6 +128,8 @@ namespace cAlgo.Patterns
 
             Id = 0;
 
+            SetFrontObjectsZIndex();
+
             OnDrawingStopped();
 
             var drawingStopped = DrawingStopped;
@@ -142,16 +142,26 @@ namespace cAlgo.Patterns
 
         protected void FinishDrawing()
         {
-            SetMainObjectZIndex();
-
             StopDrawing();
         }
 
-        private void SetMainObjectZIndex()
+        private void SetFrontObjectsZIndex()
         {
-            var mainObject = MainObject;
+            var frontObjects = GetFrontObjects();
 
-            if (mainObject != null) mainObject.ZIndex = Chart.Objects.Count - 1;
+            if (frontObjects == null) return;
+
+            for (var i = 0; i < frontObjects.Length; i++)
+            {
+                var chartObject = frontObjects[i];
+
+                chartObject.ZIndex = Chart.Objects.Count - (i + 1);
+            }
+        }
+
+        protected virtual ChartObject[] GetFrontObjects()
+        {
+            return null;
         }
 
         protected virtual void OnDrawingStopped()
