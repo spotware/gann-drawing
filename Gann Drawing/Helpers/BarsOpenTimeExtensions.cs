@@ -19,13 +19,19 @@ namespace cAlgo.Helpers
 
             if (indexDiff > 0)
             {
+                var isDiffLessThanDay = timeDiff < TimeSpan.FromDays(1);
+
                 for (var i = 1; i <= indexDiff; i++)
                 {
-                    do
+                    result = result.Add(timeDiff);
+
+                    if (isDiffLessThanDay)
                     {
-                        result = result.Add(timeDiff);
+                        while (!symbol.IsInTradingTime(result))
+                        {
+                            result = result.Add(timeDiff);
+                        }
                     }
-                    while (!symbol.IsInTradingTime(result));
                 }
             }
 
@@ -38,9 +44,14 @@ namespace cAlgo.Helpers
 
             var timeDiff = bars.GetTimeDiff();
 
-            var outsideTradingTime = symbol.GetOutsideTradingTimeAmount(bars.OpenTimes.LastValue, time, timeDiff);
+            var timeDiffWithLastTime = (time - bars.OpenTimes.LastValue);
 
-            var timeDiffWithLastTime = (time - bars.OpenTimes.LastValue).Add(-outsideTradingTime);
+            if (bars.TimeFrame < TimeFrame.Daily)
+            {
+                var outsideTradingTime = symbol.GetOutsideTradingTimeAmount(bars.OpenTimes.LastValue, time, timeDiff);
+
+                timeDiffWithLastTime = timeDiffWithLastTime.Add(-outsideTradingTime);
+            }
 
             var futureIndex = (bars.Count - 1) + timeDiffWithLastTime.TotalHours / timeDiff.TotalHours;
 
@@ -51,14 +62,14 @@ namespace cAlgo.Helpers
         {
             var index = bars.Count - 1;
 
-            if (index < 4)
+            if (index < 10)
             {
                 throw new InvalidOperationException("Not enough data in market series to calculate the time difference");
             }
 
-            var timeDiffs = new TimeSpan[4];
+            var timeDiffs = new TimeSpan[10];
 
-            for (var i = 0; i < 4; i++)
+            for (var i = 0; i < 10; i++)
             {
                 timeDiffs[i] = bars.OpenTimes[index - i] - bars.OpenTimes[index - i - 1];
             }
