@@ -21,6 +21,8 @@ namespace cAlgo.Patterns
             _settings = settings;
         }
 
+        protected override ChartObject MainObject { get { return _rectangle; } }
+
         protected override void OnPatternChartObjectsUpdated(long id, ChartObject updatedChartObject, ChartObject[] patternObjects)
         {
             if (updatedChartObject.ObjectType != ChartObjectType.Rectangle) return;

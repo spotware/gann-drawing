@@ -66,6 +66,8 @@ namespace cAlgo.Patterns
 
         public event Action<IPattern> DrawingStopped;
 
+        protected virtual ChartObject MainObject { get { return null; } }
+
         public void Initialize()
         {
             OnInitialize();
@@ -140,9 +142,16 @@ namespace cAlgo.Patterns
 
         protected void FinishDrawing()
         {
-            DrawNonInteractiveObjects();
+            SetMainObjectZIndex();
 
             StopDrawing();
+        }
+
+        private void SetMainObjectZIndex()
+        {
+            var mainObject = MainObject;
+
+            if (mainObject != null) mainObject.ZIndex = Chart.Objects.Count - 1;
         }
 
         protected virtual void OnDrawingStopped()
@@ -271,10 +280,6 @@ namespace cAlgo.Patterns
         {
         }
 
-        protected virtual void DrawNonInteractiveObjects()
-        {
-        }
-
         protected virtual void UpdateLabels(long id, ChartObject updatedObject, ChartText[] labels, ChartObject[] patternObjects)
         {
         }
@@ -287,7 +292,8 @@ namespace cAlgo.Patterns
 
             var chartText = Chart.DrawText(name, text, time, y, LabelsColor);
 
-            chartText.IsInteractive = Config.IsLabelsInteractive;
+            chartText.IsInteractive = true;
+            chartText.IsLocked = Config.IsLabelsLocked;
             chartText.IsBold = isBold;
 
             if (fontSize != default(double)) chartText.FontSize = fontSize;

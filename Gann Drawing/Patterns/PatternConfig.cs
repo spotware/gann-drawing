@@ -5,13 +5,13 @@ namespace cAlgo.Patterns
 {
     public class PatternConfig
     {
-        public PatternConfig(Chart chart, Color color, bool showLabels, Color labelsColor, bool isLabelsInteractive)
+        public PatternConfig(Chart chart, Color color, bool showLabels, Color labelsColor, bool isLabelsLocked)
         {
             Chart = chart;
             Color = color;
             ShowLabels = showLabels;
             LabelsColor = labelsColor;
-            IsLabelsInteractive = isLabelsInteractive;
+            IsLabelsLocked = isLabelsLocked;
         }
 
         public Chart Chart { get; private set; }
@@ -22,7 +22,7 @@ namespace cAlgo.Patterns
 
         public Color LabelsColor { get; private set; }
 
-        public bool IsLabelsInteractive { get; private set; }
+        public bool IsLabelsLocked { get; private set; }
 
         public Action<string> Print { get; set; }
     }
