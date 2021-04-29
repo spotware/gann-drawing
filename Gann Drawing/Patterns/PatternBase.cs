@@ -151,11 +151,13 @@ namespace cAlgo.Patterns
 
             if (frontObjects == null) return;
 
+            var objectsCount = Chart.Objects.Count - 1;
+
             for (var i = 0; i < frontObjects.Length; i++)
             {
                 var chartObject = frontObjects[i];
 
-                chartObject.ZIndex = Chart.Objects.Count - (i + 1);
+                chartObject.ZIndex = objectsCount - i;
             }
         }
 
