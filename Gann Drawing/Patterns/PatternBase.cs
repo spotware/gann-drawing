@@ -157,6 +157,8 @@ namespace cAlgo.Patterns
             {
                 var chartObject = frontObjects[i];
 
+                if (chartObject == null) continue;
+
                 chartObject.ZIndex = objectsCount - i;
             }
         }

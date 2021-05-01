@@ -367,11 +367,18 @@ namespace cAlgo.Patterns
                 barsNumber * 0.8,
             };
 
+            var rectangleEndTime = rectangle.GetEndTime();
+
             for (int i = 0; i < lineLevels.Length; i++)
             {
                 var barIndex = startBarIndex + lineLevels[i];
 
                 var time = Chart.Bars.GetOpenTime(barIndex, Chart.Symbol);
+
+                if (time > rectangleEndTime)
+                {
+                    time = rectangleEndTime;
+                }
 
                 var verticalLine = verticalLines[i];
 
