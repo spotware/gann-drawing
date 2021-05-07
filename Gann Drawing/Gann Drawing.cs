@@ -252,24 +252,78 @@ namespace cAlgo
                 FansColor = ColorParser.Parse(GannSquareFansColor),
             }));
 
-            AddPatternButton(new GannFanPattern(patternConfig, new GannFanSettings
-            {
-                OneThickness = GannFanOneThickness,
-                OneStyle = GannFanOneStyle,
-                OneColor = ColorParser.Parse(GannFanOneColor),
-                TwoThickness = GannFanTwoThickness,
-                TwoStyle = GannFanTwoStyle,
-                TwoColor = ColorParser.Parse(GannFanTwoColor),
-                ThreeThickness = GannFanThreeThickness,
-                ThreeStyle = GannFanThreeStyle,
-                ThreeColor = ColorParser.Parse(GannFanThreeColor),
-                FourThickness = GannFanFourThickness,
-                FourStyle = GannFanFourStyle,
-                FourColor = ColorParser.Parse(GannFanFourColor),
-                EightThickness = GannFanEightThickness,
-                EightStyle = GannFanEightStyle,
-                EightColor = ColorParser.Parse(GannFanEightColor),
-            }));
+            AddPatternButton(new GannFanPattern(patternConfig, new SideFanSettings[]
+                {
+                    new SideFanSettings
+                    {
+                        Name = "1x2",
+                        Percent = 0.416,
+                        Color = ColorParser.Parse(GannFanTwoColor),
+                        Style = GannFanTwoStyle,
+                        Thickness = GannFanTwoThickness
+                    },
+                    new SideFanSettings
+                    {
+                        Name = "1x3",
+                        Percent = 0.583,
+                        Color = ColorParser.Parse(GannFanThreeColor),
+                        Style = GannFanThreeStyle,
+                        Thickness = GannFanThreeThickness
+                    },
+                    new SideFanSettings
+                    {
+                        Name = "1x4",
+                        Percent = 0.666,
+                        Color = ColorParser.Parse(GannFanFourColor),
+                        Style = GannFanFourStyle,
+                        Thickness = GannFanFourThickness
+                    },
+                    new SideFanSettings
+                    {
+                        Name = "1x8",
+                        Percent = 0.833,
+                        Color = ColorParser.Parse(GannFanEightColor),
+                        Style = GannFanEightStyle,
+                        Thickness = GannFanEightThickness
+                    },
+                    new SideFanSettings
+                    {
+                        Name = "2x1",
+                        Percent = -0.416,
+                        Color = ColorParser.Parse(GannFanTwoColor),
+                        Style = GannFanTwoStyle,
+                        Thickness = GannFanTwoThickness
+                    },
+                    new SideFanSettings
+                    {
+                        Name = "3x1",
+                        Percent = -0.583,
+                        Color = ColorParser.Parse(GannFanThreeColor),
+                        Style = GannFanThreeStyle,
+                        Thickness = GannFanThreeThickness
+                    },
+                    new SideFanSettings
+                    {
+                        Name = "4x1",
+                        Percent = -0.666,
+                        Color = ColorParser.Parse(GannFanFourColor),
+                        Style = GannFanFourStyle,
+                        Thickness = GannFanFourThickness
+                    },
+                    new SideFanSettings
+                    {
+                        Name = "8x1",
+                        Percent = -0.833,
+                        Color = ColorParser.Parse(GannFanEightColor),
+                        Style = GannFanEightStyle,
+                        Thickness = GannFanEightThickness
+                    },
+                }, new FanSettings
+                {
+                    Color = ColorParser.Parse(GannFanOneColor),
+                    Style = GannFanOneStyle,
+                    Thickness = GannFanOneThickness
+                }));
 
             var showHideButton = new Controls.ToggleButton()
             {

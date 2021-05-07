@@ -298,13 +298,15 @@ namespace cAlgo.Patterns
         {
         }
 
-        protected ChartText DrawLabelText(string text, DateTime time, double y, long id, bool isBold = false, double fontSize = default(double), string objectNameKey = null)
+        protected ChartText DrawLabelText(string text, DateTime time, double y, long id, bool isBold = false, double fontSize = default(double), string objectNameKey = null, Color color = null)
         {
             var name = string.IsNullOrWhiteSpace(objectNameKey)
                 ? string.Format("{0}_{1}_Label_{2}", ObjectName, id, text)
                 : string.Format("{0}_{1}_Label_{2}", ObjectName, id, objectNameKey);
 
-            var chartText = Chart.DrawText(name, text, time, y, LabelsColor);
+            if (color == null) color = LabelsColor;
+
+            var chartText = Chart.DrawText(name, text, time, y, color);
 
             chartText.IsInteractive = true;
             chartText.IsLocked = Config.IsLabelsLocked;
