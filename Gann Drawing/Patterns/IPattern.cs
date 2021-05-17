@@ -15,5 +15,7 @@ namespace cAlgo.Patterns
         void StopDrawing();
 
         string Name { get; }
+
+        bool IsDrawing { get; }
     }
 }

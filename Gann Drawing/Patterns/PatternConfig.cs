@@ -1,17 +1,19 @@
 ﻿using cAlgo.API;
-using System;
+using cAlgo.Helpers;
 
 namespace cAlgo.Patterns
 {
     public class PatternConfig
     {
-        public PatternConfig(Chart chart, Color color, bool showLabels, Color labelsColor, bool isLabelsLocked)
+        public PatternConfig(Chart chart, Color color, bool showLabels, Color labelsColor, bool isLabelsLocked, bool isLabelsStyleLinked, ILogger logger)
         {
             Chart = chart;
             Color = color;
             ShowLabels = showLabels;
             LabelsColor = labelsColor;
             IsLabelsLocked = isLabelsLocked;
+            IsLabelsStyleLinked = isLabelsStyleLinked;
+            Logger = logger;
         }
 
         public Chart Chart { get; private set; }
@@ -24,6 +26,8 @@ namespace cAlgo.Patterns
 
         public bool IsLabelsLocked { get; private set; }
 
-        public Action<string> Print { get; set; }
+        public bool IsLabelsStyleLinked { get; private set; }
+
+        public ILogger Logger { get; private set; }
     }
 }

@@ -37,7 +37,7 @@ namespace cAlgo.Patterns
 
             DrawOrUpdateVerticalLines(rectangle, verticalLines);
 
-            UpdateFans(rectangle, trendLines.Where(iTrendLine => iTrendLine.Name.IndexOf("Fan", StringComparison.OrdinalIgnoreCase) > -1).ToArray());
+            UpdateFans(rectangle, trendLines.Where(iTrendLine => iTrendLine.Name.Split('_').Last().IndexOf("Fan", StringComparison.OrdinalIgnoreCase) > -1).ToArray());
         }
 
         private void UpdateFans(ChartRectangle rectangle, ChartTrendLine[] fans)
@@ -57,12 +57,13 @@ namespace cAlgo.Patterns
             {
                 var fanName = fan.Name.Split('.').Last();
 
+                fan.Time1 = startTime;
+                fan.Y1 = bottomPrice;
+
                 switch (fanName)
                 {
                     case "1x1":
-                        fan.Time1 = startTime;
                         fan.Time2 = endTime;
-                        fan.Y1 = bottomPrice;
                         fan.Y2 = topPrice;
                         break;
 
@@ -72,9 +73,6 @@ namespace cAlgo.Patterns
                     case "1x5":
                     case "1x8":
                         {
-                            fan.Time1 = startTime;
-
-                            fan.Y1 = bottomPrice;
                             fan.Y2 = topPrice;
 
                             switch (fanName)
@@ -108,10 +106,7 @@ namespace cAlgo.Patterns
                     case "5x1":
                     case "8x1":
                         {
-                            fan.Time1 = startTime;
                             fan.Time2 = endTime;
-
-                            fan.Y1 = bottomPrice;
 
                             switch (fanName)
                             {
@@ -208,18 +203,14 @@ namespace cAlgo.Patterns
             foreach (var level in levels)
             {
                 string name = null;
-                DateTime firstTime;
                 DateTime secondTime = endTime;
-                double firstPrice;
                 double secondPrice = topPrice;
 
                 switch (level)
                 {
                     case 1:
                         name = "1x1";
-                        firstTime = startTime;
                         secondTime = endTime;
-                        firstPrice = bottomPrice;
                         secondPrice = topPrice;
                         break;
 
@@ -230,8 +221,6 @@ namespace cAlgo.Patterns
                     case 8:
                         {
                             name = string.Format("1x{0}", level);
-                            firstTime = startTime;
-                            firstPrice = bottomPrice;
                             secondPrice = topPrice;
 
                             switch (level)
@@ -266,8 +255,6 @@ namespace cAlgo.Patterns
                     case -8:
                         {
                             name = string.Format("{0}x1", Math.Abs(level));
-                            firstTime = startTime;
-                            firstPrice = bottomPrice;
                             secondTime = endTime;
 
                             switch (level)
@@ -303,7 +290,7 @@ namespace cAlgo.Patterns
 
                 var objectName = GetObjectName(string.Format("Fan.{0}", name));
 
-                var trendLine = Chart.DrawTrendLine(objectName, firstTime, firstPrice, secondTime, secondPrice, _settings.FansColor, _settings.FansThickness, _settings.FansStyle);
+                var trendLine = Chart.DrawTrendLine(objectName, startTime, bottomPrice, secondTime, secondPrice, _settings.FansColor, _settings.FansThickness, _settings.FansStyle);
 
                 trendLine.IsInteractive = true;
                 trendLine.IsLocked = true;
@@ -411,9 +398,9 @@ namespace cAlgo.Patterns
 
         private void DrawLabels(ChartRectangle rectangle, long id)
         {
-            DrawLabelText(Math.Round(rectangle.GetPriceDelta(), Chart.Symbol.Digits).ToString(), rectangle.GetStartTime(), rectangle.GetTopPrice(), id, objectNameKey: "Price", fontSize: 10);
+            DrawLabelText(Math.Round(rectangle.GetPriceDelta(), Chart.Symbol.Digits).ToNonScientificString(), rectangle.GetStartTime(), rectangle.GetTopPrice(), id, objectNameKey: "Price", fontSize: 10);
             DrawLabelText(rectangle.GetBarsNumber(Chart.Bars, Chart.Symbol).ToString(), rectangle.GetEndTime(), rectangle.GetBottomPrice(), id, objectNameKey: "BarsNumber", fontSize: 10);
-            DrawLabelText(rectangle.GetPriceToBarsRatio(Chart.Bars, Chart.Symbol).ToString("0." + new string('#', 339)), rectangle.GetEndTime(), rectangle.GetTopPrice(), id, objectNameKey: "PriceToBarsRatio", fontSize: 10);
+            DrawLabelText(rectangle.GetPriceToBarsRatio(Chart.Bars, Chart.Symbol).ToNonScientificString(), rectangle.GetEndTime(), rectangle.GetTopPrice(), id, objectNameKey: "PriceToBarsRatio", fontSize: 10);
         }
 
         protected override void UpdateLabels(long id, ChartObject chartObject, ChartText[] labels, ChartObject[] patternObjects)
@@ -438,7 +425,7 @@ namespace cAlgo.Patterns
                 switch (labelKey)
                 {
                     case "Price":
-                        label.Text = Math.Round(rectangle.GetPriceDelta(), Chart.Symbol.Digits).ToString();
+                        label.Text = Math.Round(rectangle.GetPriceDelta(), Chart.Symbol.Digits).ToNonScientificString();
                         label.Time = rectangle.GetStartTime();
                         label.Y = rectangle.GetTopPrice();
                         break;
@@ -450,7 +437,7 @@ namespace cAlgo.Patterns
                         break;
 
                     case "PriceToBarsRatio":
-                        label.Text = rectangle.GetPriceToBarsRatio(Chart.Bars, Chart.Symbol).ToString();
+                        label.Text = rectangle.GetPriceToBarsRatio(Chart.Bars, Chart.Symbol).ToNonScientificString();
                         label.Time = rectangle.GetEndTime();
                         label.Y = rectangle.GetTopPrice();
                         break;

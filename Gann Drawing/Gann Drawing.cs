@@ -2,7 +2,7 @@
 using cAlgo.Controls;
 using cAlgo.Helpers;
 using cAlgo.Patterns;
-using System.Linq;
+using System.Collections.Generic;
 
 namespace cAlgo
 {
@@ -21,6 +21,22 @@ namespace cAlgo
 
         private Style _buttonsStyle;
 
+        private readonly List<Button> _buttons = new List<Button>();
+
+        private Button _expandButton;
+
+        #region Patterns color parameters
+
+        [Parameter("Color", DefaultValue = "Red", Group = "Patterns Color")]
+        public string PatternsColor { get; set; }
+
+        [Parameter("Alpha", DefaultValue = 100, MinValue = 0, MaxValue = 255, Group = "Patterns Color")]
+        public int PatternsColorAlpha { get; set; }
+
+        #endregion Patterns color parameters
+
+        #region Patterns Label parameters
+
         [Parameter("Show", DefaultValue = true, Group = "Patterns Label")]
         public bool PatternsLabelShow { get; set; }
 
@@ -32,6 +48,13 @@ namespace cAlgo
 
         [Parameter("Locked", DefaultValue = true, Group = "Patterns Label")]
         public bool PatternsLabelLocked { get; set; }
+
+        [Parameter("Link Style", DefaultValue = true, Group = "Patterns Label")]
+        public bool PatternsLabelLinkStyle { get; set; }
+
+        #endregion Patterns Label parameters
+
+        #region Container Panel parameters
 
         [Parameter("Orientation", DefaultValue = Orientation.Vertical, Group = "Container Panel")]
         public Orientation PanelOrientation { get; set; }
@@ -45,6 +68,10 @@ namespace cAlgo
         [Parameter("Margin", DefaultValue = 3, Group = "Container Panel")]
         public double PanelMargin { get; set; }
 
+        #endregion Container Panel parameters
+
+        #region Buttons parameters
+
         [Parameter("Disable Color", DefaultValue = "#FFCCCCCC", Group = "Buttons")]
         public string ButtonsBackgroundDisableColor { get; set; }
 
@@ -57,8 +84,12 @@ namespace cAlgo
         [Parameter("Margin", DefaultValue = 1, Group = "Buttons")]
         public double ButtonsMargin { get; set; }
 
-        [Parameter("Transparency", DefaultValue = 1, MinValue = 0, MaxValue = 1, Group = "Buttons")]
+        [Parameter("Transparency", DefaultValue = 0.5, MinValue = 0, MaxValue = 1, Group = "Buttons")]
         public double ButtonsTransparency { get; set; }
+
+        #endregion Buttons parameters
+
+        #region TimeFrame Visibility parameters
 
         [Parameter("Enable", DefaultValue = false, Group = "TimeFrame Visibility")]
         public bool IsTimeFrameVisibilityEnabled { get; set; }
@@ -68,6 +99,10 @@ namespace cAlgo
 
         [Parameter("Only Buttons", Group = "TimeFrame Visibility")]
         public bool VisibilityOnlyButtons { get; set; }
+
+        #endregion TimeFrame Visibility parameters
+
+        #region Gann Box parameters
 
         [Parameter("Rectangle Thickness", DefaultValue = 1, MinValue = 1, Group = "Gann Box")]
         public int GannBoxRectangleThickness { get; set; }
@@ -95,6 +130,10 @@ namespace cAlgo
 
         [Parameter("Time Levels Color", DefaultValue = "Yellow", Group = "Gann Box")]
         public string GannBoxTimeLevelsColor { get; set; }
+
+        #endregion Gann Box parameters
+
+        #region Gann Square parameters
 
         [Parameter("Rectangle Thickness", DefaultValue = 1, MinValue = 1, Group = "Gann Square")]
         public int GannSquareRectangleThickness { get; set; }
@@ -131,6 +170,10 @@ namespace cAlgo
 
         [Parameter("Fans Color", DefaultValue = "Brown", Group = "Gann Square")]
         public string GannSquareFansColor { get; set; }
+
+        #endregion Gann Square parameters
+
+        #region Gann Fan parameters
 
         [Parameter("1/1 Thickness", DefaultValue = 1, MinValue = 1, Group = "Gann Fan")]
         public int GannFanOneThickness { get; set; }
@@ -177,6 +220,10 @@ namespace cAlgo
         [Parameter("1/8 and 8/1 Color", DefaultValue = "Blue", Group = "Gann Fan")]
         public string GannFanEightColor { get; set; }
 
+        #endregion Gann Fan parameters
+
+        #region Overridden methods
+
         protected override void Initialize()
         {
             _mainPanel = new StackPanel
@@ -216,12 +263,20 @@ namespace cAlgo
             _buttonsStyle.Set(ControlProperty.VerticalContentAlignment, VerticalAlignment.Center);
             _buttonsStyle.Set(ControlProperty.Opacity, ButtonsTransparency);
 
+            var patternsColor = ColorParser.Parse(PatternsColor, PatternsColorAlpha);
             var patternsLabelsColor = ColorParser.Parse(PatternsLabelColor, PatternsLabelColorAlpha);
 
-            var patternConfig = new PatternConfig(Chart, Color.Black, PatternsLabelShow, patternsLabelsColor, PatternsLabelLocked)
+            var patternConfig = new PatternConfig(Chart, patternsColor, PatternsLabelShow, patternsLabelsColor, PatternsLabelLocked, PatternsLabelLinkStyle, new Logger(this.GetType().Name, Print));
+
+            _expandButton = new Button
             {
-                Print = Print
+                Style = _buttonsStyle,
+                Text = "Expand Patterns"
             };
+
+            _expandButton.Click += ExpandButton_Click;
+
+            _mainButtonsPanel.AddChild(_expandButton);
 
             AddPatternButton(new GannBoxPattern(patternConfig, new GannBoxSettings
             {
@@ -253,71 +308,71 @@ namespace cAlgo
             }));
 
             AddPatternButton(new GannFanPattern(patternConfig, new SideFanSettings[]
+            {
+                new SideFanSettings
                 {
-                    new SideFanSettings
-                    {
-                        Name = "1x2",
-                        Percent = 0.416,
-                        Color = ColorParser.Parse(GannFanTwoColor),
-                        Style = GannFanTwoStyle,
-                        Thickness = GannFanTwoThickness
-                    },
-                    new SideFanSettings
-                    {
-                        Name = "1x3",
-                        Percent = 0.583,
-                        Color = ColorParser.Parse(GannFanThreeColor),
-                        Style = GannFanThreeStyle,
-                        Thickness = GannFanThreeThickness
-                    },
-                    new SideFanSettings
-                    {
-                        Name = "1x4",
-                        Percent = 0.666,
-                        Color = ColorParser.Parse(GannFanFourColor),
-                        Style = GannFanFourStyle,
-                        Thickness = GannFanFourThickness
-                    },
-                    new SideFanSettings
-                    {
-                        Name = "1x8",
-                        Percent = 0.833,
-                        Color = ColorParser.Parse(GannFanEightColor),
-                        Style = GannFanEightStyle,
-                        Thickness = GannFanEightThickness
-                    },
-                    new SideFanSettings
-                    {
-                        Name = "2x1",
-                        Percent = -0.416,
-                        Color = ColorParser.Parse(GannFanTwoColor),
-                        Style = GannFanTwoStyle,
-                        Thickness = GannFanTwoThickness
-                    },
-                    new SideFanSettings
-                    {
-                        Name = "3x1",
-                        Percent = -0.583,
-                        Color = ColorParser.Parse(GannFanThreeColor),
-                        Style = GannFanThreeStyle,
-                        Thickness = GannFanThreeThickness
-                    },
-                    new SideFanSettings
-                    {
-                        Name = "4x1",
-                        Percent = -0.666,
-                        Color = ColorParser.Parse(GannFanFourColor),
-                        Style = GannFanFourStyle,
-                        Thickness = GannFanFourThickness
-                    },
-                    new SideFanSettings
-                    {
-                        Name = "8x1",
-                        Percent = -0.833,
-                        Color = ColorParser.Parse(GannFanEightColor),
-                        Style = GannFanEightStyle,
-                        Thickness = GannFanEightThickness
-                    },
+                    Name = "1x2",
+                    Percent = 0.416,
+                    Color = ColorParser.Parse(GannFanTwoColor),
+                    Style = GannFanTwoStyle,
+                    Thickness = GannFanTwoThickness
+                },
+                new SideFanSettings
+                {
+                    Name = "1x3",
+                    Percent = 0.583,
+                    Color = ColorParser.Parse(GannFanThreeColor),
+                    Style = GannFanThreeStyle,
+                    Thickness = GannFanThreeThickness
+                },
+                new SideFanSettings
+                {
+                    Name = "1x4",
+                    Percent = 0.666,
+                    Color = ColorParser.Parse(GannFanFourColor),
+                    Style = GannFanFourStyle,
+                    Thickness = GannFanFourThickness
+                },
+                new SideFanSettings
+                {
+                    Name = "1x8",
+                    Percent = 0.833,
+                    Color = ColorParser.Parse(GannFanEightColor),
+                    Style = GannFanEightStyle,
+                    Thickness = GannFanEightThickness
+                },
+                new SideFanSettings
+                {
+                    Name = "2x1",
+                    Percent = -0.416,
+                    Color = ColorParser.Parse(GannFanTwoColor),
+                    Style = GannFanTwoStyle,
+                    Thickness = GannFanTwoThickness
+                },
+                new SideFanSettings
+                {
+                    Name = "3x1",
+                    Percent = -0.583,
+                    Color = ColorParser.Parse(GannFanThreeColor),
+                    Style = GannFanThreeStyle,
+                    Thickness = GannFanThreeThickness
+                },
+                new SideFanSettings
+                {
+                    Name = "4x1",
+                    Percent = -0.666,
+                    Color = ColorParser.Parse(GannFanFourColor),
+                    Style = GannFanFourStyle,
+                    Thickness = GannFanFourThickness
+                },
+                new SideFanSettings
+                {
+                    Name = "8x1",
+                    Percent = -0.833,
+                    Color = ColorParser.Parse(GannFanEightColor),
+                    Style = GannFanEightStyle,
+                    Thickness = GannFanEightThickness
+                },
                 }, new FanSettings
                 {
                     Color = ColorParser.Parse(GannFanOneColor),
@@ -330,28 +385,54 @@ namespace cAlgo
                 Style = _buttonsStyle,
                 OnColor = _buttonsBackgroundEnableColor,
                 OffColor = _buttonsBackgroundDisableColor,
-                Text = "Hide"
+                Text = "Hide",
+                IsVisible = false
             };
 
             showHideButton.TurnedOn += ShowHideButton_TurnedOn;
             showHideButton.TurnedOff += ShowHideButton_TurnedOff;
 
             _mainButtonsPanel.AddChild(showHideButton);
+            _buttons.Add(showHideButton);
 
-            _mainButtonsPanel.AddChild(new PatternsSaveButton(Chart)
+            var saveButton = new PatternsSaveButton(Chart)
             {
-                Style = _buttonsStyle
-            });
+                Style = _buttonsStyle,
+                IsVisible = false
+            };
 
-            _mainButtonsPanel.AddChild(new PatternsLoadButton(Chart)
-            {
-                Style = _buttonsStyle
-            });
+            _mainButtonsPanel.AddChild(saveButton);
+            _buttons.Add(saveButton);
 
-            _mainButtonsPanel.AddChild(new PatternsRemoveAllButton(Chart)
+            var loadButton = new PatternsLoadButton(Chart)
             {
-                Style = _buttonsStyle
-            });
+                Style = _buttonsStyle,
+                IsVisible = false
+            };
+
+            _mainButtonsPanel.AddChild(loadButton);
+            _buttons.Add(loadButton);
+
+            var removeAllButton = new PatternsRemoveAllButton(Chart)
+            {
+                Style = _buttonsStyle,
+                IsVisible = false
+            };
+
+            _mainButtonsPanel.AddChild(removeAllButton);
+            _buttons.Add(removeAllButton);
+
+            var collapseButton = new Button
+            {
+                Style = _buttonsStyle,
+                Text = "Collapse",
+                IsVisible = false
+            };
+
+            collapseButton.Click += CollapseButton_Click;
+
+            _mainButtonsPanel.AddChild(collapseButton);
+            _buttons.Add(collapseButton);
 
             Chart.AddControl(_mainPanel);
 
@@ -362,42 +443,53 @@ namespace cAlgo
         {
         }
 
+        #endregion Overridden methods
+
+        private void CollapseButton_Click(ButtonClickEventArgs obj)
+        {
+            _buttons.ForEach(iButton => iButton.IsVisible = false);
+
+            _groupButtonsPanel.IsVisible = false;
+
+            _expandButton.IsVisible = true;
+        }
+
+        private void ExpandButton_Click(ButtonClickEventArgs obj)
+        {
+            _buttons.ForEach(iButton => iButton.IsVisible = true);
+
+            obj.Button.IsVisible = false;
+        }
+
         private void ShowHideButton_TurnedOff(Controls.ToggleButton obj)
         {
-            ChangePatternsVisibility(false);
+            Chart.ChangePatternsVisibility(false);
 
             obj.Text = "Hide";
         }
 
         private void ShowHideButton_TurnedOn(Controls.ToggleButton obj)
         {
-            ChangePatternsVisibility(true);
+            Chart.ChangePatternsVisibility(true);
 
             obj.Text = "Show";
         }
 
         private void AddPatternButton(IPattern pattern)
         {
-            _mainButtonsPanel.AddChild(new PatternButton(pattern)
+            var button = new PatternButton(pattern)
             {
                 Style = _buttonsStyle,
                 OnColor = _buttonsBackgroundEnableColor,
-                OffColor = _buttonsBackgroundDisableColor
-            });
+                OffColor = _buttonsBackgroundDisableColor,
+                IsVisible = false
+            };
+
+            _buttons.Add(button);
+
+            _mainButtonsPanel.AddChild(button);
 
             pattern.Initialize();
-        }
-
-        private void ChangePatternsVisibility(bool isHidden)
-        {
-            var chartObjects = Chart.Objects.ToArray();
-
-            foreach (var chartObject in chartObjects)
-            {
-                if (!chartObject.IsPattern()) continue;
-
-                chartObject.IsHidden = isHidden;
-            }
         }
 
         private void CheckTimeFrameVisibility()
@@ -408,11 +500,11 @@ namespace cAlgo
                 {
                     _mainButtonsPanel.IsVisible = false;
 
-                    if (!VisibilityOnlyButtons) ChangePatternsVisibility(true);
+                    if (!VisibilityOnlyButtons) Chart.ChangePatternsVisibility(true);
                 }
                 else if (!VisibilityOnlyButtons)
                 {
-                    ChangePatternsVisibility(false);
+                    Chart.ChangePatternsVisibility(false);
                 }
             }
         }

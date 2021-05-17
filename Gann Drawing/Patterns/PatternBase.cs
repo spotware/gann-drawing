@@ -2,6 +2,8 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace cAlgo.Patterns
 {
@@ -10,6 +12,7 @@ namespace cAlgo.Patterns
         private int _mouseUpNumber;
         private bool _isMouseDown;
         private bool _isDrawing;
+        private bool _isSubscribedToChartObjectsUpdatedEvent;
 
         public PatternBase(string name, PatternConfig config, string objectName = null)
         {
@@ -68,14 +71,18 @@ namespace cAlgo.Patterns
 
         public void Initialize()
         {
-            OnInitialize();
+            ExecuteInTryCatch(() =>
+            {
+                OnInitialize();
 
-            ReloadPatterns(Chart.Objects.ToArray());
+                ReloadPatterns(Chart.Objects.ToArray());
 
-            Config.Chart.ObjectsRemoved += Chart_ObjectsRemoved;
-            Config.Chart.ObjectsUpdated += Chart_ObjectsUpdated;
+                Config.Chart.ObjectsRemoved += Chart_ObjectsRemoved;
 
-            OnInitialized();
+                SubscribeToChartObjectsUpdatedEvent();
+
+                OnInitialized();
+            });
         }
 
         protected virtual void OnInitialize()
@@ -92,22 +99,27 @@ namespace cAlgo.Patterns
 
             _isDrawing = true;
 
-            Id = DateTime.Now.Ticks;
-
-            Chart.MouseDown += Chart_MouseDown;
-            Chart.MouseMove += Chart_MouseMove;
-            Chart.MouseUp += Chart_MouseUp;
-
-            Chart.IsScrollingEnabled = false;
-
-            OnDrawingStarted();
-
-            var drawingStarted = DrawingStarted;
-
-            if (drawingStarted != null)
+            ExecuteInTryCatch(() =>
             {
-                drawingStarted.Invoke(this);
-            }
+                UnsubscribeFromChartObjectsUpdatedEvent();
+
+                Id = DateTime.Now.Ticks;
+
+                Chart.MouseDown += Chart_MouseDown;
+                Chart.MouseMove += Chart_MouseMove;
+                Chart.MouseUp += Chart_MouseUp;
+
+                Chart.IsScrollingEnabled = false;
+
+                OnDrawingStarted();
+
+                var drawingStarted = DrawingStarted;
+
+                if (drawingStarted != null)
+                {
+                    drawingStarted.Invoke(this);
+                }
+            });
         }
 
         public void StopDrawing()
@@ -116,28 +128,38 @@ namespace cAlgo.Patterns
 
             _isDrawing = false;
 
-            if (ShowLabels) DrawLabels();
-
-            Chart.MouseDown -= Chart_MouseDown;
-            Chart.MouseMove -= Chart_MouseMove;
-            Chart.MouseUp -= Chart_MouseUp;
-
-            Chart.IsScrollingEnabled = true;
-
-            _mouseUpNumber = 0;
-
-            Id = 0;
-
-            SetFrontObjectsZIndex();
-
-            OnDrawingStopped();
-
-            var drawingStopped = DrawingStopped;
-
-            if (drawingStopped != null)
+            ExecuteInTryCatch(() =>
             {
-                drawingStopped.Invoke(this);
-            }
+                if (ShowLabels) DrawLabels();
+
+                Chart.MouseDown -= Chart_MouseDown;
+                Chart.MouseMove -= Chart_MouseMove;
+                Chart.MouseUp -= Chart_MouseUp;
+
+                Chart.IsScrollingEnabled = true;
+
+                _mouseUpNumber = 0;
+
+                Id = 0;
+
+                SetFrontObjectsZIndex();
+
+                OnDrawingStopped();
+
+                var drawingStopped = DrawingStopped;
+
+                if (drawingStopped != null)
+                {
+                    drawingStopped.Invoke(this);
+                }
+
+                Task.Factory.StartNew(() =>
+                {
+                    Thread.Sleep(500);
+
+                    SubscribeToChartObjectsUpdatedEvent();
+                });
+            });
         }
 
         protected void FinishDrawing()
@@ -178,14 +200,14 @@ namespace cAlgo.Patterns
 
         private void Chart_MouseMove(ChartMouseEventArgs obj)
         {
-            OnMouseMove(obj);
+            ExecuteInTryCatch(() => OnMouseMove(obj));
         }
 
         private void Chart_MouseDown(ChartMouseEventArgs obj)
         {
             _isMouseDown = true;
 
-            OnMouseDown(obj);
+            ExecuteInTryCatch(() => OnMouseDown(obj));
         }
 
         private void Chart_MouseUp(ChartMouseEventArgs obj)
@@ -194,7 +216,7 @@ namespace cAlgo.Patterns
 
             _mouseUpNumber++;
 
-            OnMouseUp(obj);
+            ExecuteInTryCatch(() => OnMouseUp(obj));
         }
 
         private void Chart_ObjectsRemoved(ChartObjectsRemovedEventArgs obj)
@@ -232,15 +254,15 @@ namespace cAlgo.Patterns
         {
             if (IsDrawing) return;
 
-            Chart.ObjectsUpdated -= Chart_ObjectsUpdated;
+            UnsubscribeFromChartObjectsUpdatedEvent();
 
             try
             {
-                ReloadPatterns(obj.ChartObjects.ToArray());
+                ExecuteInTryCatch(() => ReloadPatterns(obj.ChartObjects.ToArray()));
             }
             finally
             {
-                Chart.ObjectsUpdated += Chart_ObjectsUpdated;
+                SubscribeToChartObjectsUpdatedEvent();
             }
         }
 
@@ -324,27 +346,38 @@ namespace cAlgo.Patterns
             return string.Format("{0}_{1}_{2}", ObjectName, id.GetValueOrDefault(Id), data);
         }
 
-        public void ReloadPatterns(ChartObject[] chartObjects)
+        public void ReloadPatterns(ChartObject[] updatedChartObjects)
         {
-            var updatedPatternObjects = chartObjects.Where(iObject => iObject.Name.StartsWith(ObjectName,
+            var updatedPatternObjects = updatedChartObjects.Where(iObject => iObject.Name.StartsWith(ObjectName,
                 StringComparison.OrdinalIgnoreCase)).ToArray();
 
             if (updatedPatternObjects.Length == 0) return;
 
+            var chartObjects = Chart.Objects.ToArray();
+
             foreach (var chartObject in updatedPatternObjects)
             {
-                if (chartObject is ChartText) continue;
-
                 long id;
 
-                if (!TryGetChartObjectPatternId(chartObject.Name, out id))
-                {
-                    continue;
-                }
+                if (!TryGetChartObjectPatternId(chartObject.Name, out id)) continue;
 
                 var updatedPatternName = string.Format("{0}_{1}", ObjectName, id);
 
-                var patternObjects = Chart.Objects.Where(iObject => iObject.Name.StartsWith(updatedPatternName,
+                var labelObjects = chartObjects.Where(iObject => iObject.Name.StartsWith(updatedPatternName,
+                    StringComparison.OrdinalIgnoreCase) && iObject is ChartText)
+                    .Select(iObject => iObject as ChartText).ToArray();
+
+                if (chartObject is ChartText)
+                {
+                    if (Config.IsLabelsStyleLinked && ShowLabels)
+                    {
+                        UpdateLabelsStyle(labelObjects, chartObject as ChartText);
+                    }
+
+                    continue;
+                }
+
+                var patternObjects = chartObjects.Where(iObject => iObject.Name.StartsWith(updatedPatternName,
                     StringComparison.OrdinalIgnoreCase) && iObject.ObjectType != ChartObjectType.Text)
                     .ToArray();
 
@@ -352,14 +385,56 @@ namespace cAlgo.Patterns
 
                 if (ShowLabels && !patternObjects.All(iObject => iObject.IsHidden))
                 {
-                    var labelObjects = Chart.Objects.Where(iObject => iObject.Name.StartsWith(updatedPatternName,
-                        StringComparison.OrdinalIgnoreCase) && iObject is ChartText)
-                        .Select(iObject => iObject as ChartText)
-                        .ToArray();
-
                     UpdateLabels(id, chartObject, labelObjects, patternObjects);
                 }
             }
+        }
+
+        protected virtual void UpdateLabelsStyle(ChartText[] labels, ChartText updatedLabel)
+        {
+            foreach (var label in labels)
+            {
+                label.Color = updatedLabel.Color;
+                label.FontSize = updatedLabel.FontSize;
+                label.IsBold = updatedLabel.IsBold;
+                label.IsItalic = updatedLabel.IsItalic;
+                label.IsLocked = updatedLabel.IsLocked;
+                label.IsUnderlined = updatedLabel.IsUnderlined;
+                label.HorizontalAlignment = updatedLabel.HorizontalAlignment;
+                label.VerticalAlignment = updatedLabel.VerticalAlignment;
+            }
+        }
+
+        private void ExecuteInTryCatch(Action action)
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception ex)
+            {
+                Config.Logger.Fatal(ex);
+
+                throw ex;
+            }
+        }
+
+        private void SubscribeToChartObjectsUpdatedEvent()
+        {
+            if (_isSubscribedToChartObjectsUpdatedEvent) return;
+
+            _isSubscribedToChartObjectsUpdatedEvent = true;
+
+            Chart.ObjectsUpdated += Chart_ObjectsUpdated;
+        }
+
+        private void UnsubscribeFromChartObjectsUpdatedEvent()
+        {
+            if (!_isSubscribedToChartObjectsUpdatedEvent) return;
+
+            _isSubscribedToChartObjectsUpdatedEvent = false;
+
+            Chart.ObjectsUpdated -= Chart_ObjectsUpdated;
         }
     }
 }

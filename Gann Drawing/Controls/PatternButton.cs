@@ -18,11 +18,15 @@ namespace cAlgo.Controls
 
         protected override void OnTurnedOn()
         {
+            if (_pattern.IsDrawing) return;
+
             _pattern.StartDrawing();
         }
 
         protected override void OnTurnedOff()
         {
+            if (!_pattern.IsDrawing) return;
+
             _pattern.StopDrawing();
         }
 

@@ -1,6 +1,7 @@
 ﻿using cAlgo.API;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace cAlgo.Patterns
@@ -9,7 +10,7 @@ namespace cAlgo.Patterns
     {
         private ChartTrendLine _mainFanLine;
 
-        private readonly Dictionary<string, ChartTrendLine> _sideFanLines = new Dictionary<string, ChartTrendLine>();
+        private readonly Dictionary<double, ChartTrendLine> _sideFanLines = new Dictionary<double, ChartTrendLine>();
 
         private readonly SideFanSettings[] _sideFanSettings;
 
@@ -21,7 +22,7 @@ namespace cAlgo.Patterns
             _mainFanSettings = mainFanSettings;
         }
 
-        protected Dictionary<string, ChartTrendLine> SideFanLines
+        protected Dictionary<double, ChartTrendLine> SideFanLines
         {
             get
             {
@@ -59,14 +60,14 @@ namespace cAlgo.Patterns
 
             var trendLines = patternObjects.Where(iObject => iObject.ObjectType == ChartObjectType.TrendLine).Cast<ChartTrendLine>().ToArray();
 
-            var mainFan = trendLines.First(iLine => iLine.Name.IndexOf("1x1", StringComparison.OrdinalIgnoreCase) > -1);
+            var mainFan = trendLines.First(iLine => iLine.Name.IndexOf("MainFan", StringComparison.OrdinalIgnoreCase) > -1);
 
-            var sideFans = trendLines.Where(iLine => iLine.Name.IndexOf("SideFan", StringComparison.OrdinalIgnoreCase) > -1).ToDictionary(iLine => iLine.Name.Split('_').Last());
+            var sideFans = trendLines.Where(iLine => iLine.Name.IndexOf("SideFan", StringComparison.OrdinalIgnoreCase) > -1).ToDictionary(iLine => double.Parse(iLine.Name.Split('_').Last(), CultureInfo.InvariantCulture));
 
             UpdateSideFans(mainFan, sideFans);
         }
 
-        protected virtual void UpdateSideFans(ChartTrendLine mainFan, Dictionary<string, ChartTrendLine> sideFans)
+        protected virtual void UpdateSideFans(ChartTrendLine mainFan, Dictionary<double, ChartTrendLine> sideFans)
         {
             var mainFanPriceDelta = Math.Abs(mainFan.Y2 - mainFan.Y1);
 
@@ -80,7 +81,7 @@ namespace cAlgo.Patterns
 
                 ChartTrendLine fanLine;
 
-                if (!sideFans.TryGetValue(fanSettings.Name, out fanLine)) continue;
+                if (!sideFans.TryGetValue(fanSettings.Percent, out fanLine)) continue;
 
                 fanLine.Time1 = mainFan.Time1;
                 fanLine.Time2 = mainFan.Time2;
@@ -108,7 +109,7 @@ namespace cAlgo.Patterns
 
             if (_mainFanLine == null)
             {
-                var name = GetObjectName("1x1");
+                var name = GetObjectName("MainFan");
 
                 _mainFanLine = Chart.DrawTrendLine(name, obj.TimeValue, obj.YValue, obj.TimeValue, obj.YValue, _mainFanSettings.Color, _mainFanSettings.Thickness, _mainFanSettings.Style);
 
@@ -139,7 +140,7 @@ namespace cAlgo.Patterns
 
                 var y2 = mainFan.Y2 > mainFan.Y1 ? mainFan.Y2 + yAmount : mainFan.Y2 - yAmount;
 
-                var objectName = GetObjectName(string.Format("SideFan_{0}", fanSettings.Name));
+                var objectName = GetObjectName(string.Format("SideFan_{0}", fanSettings.Percent));
 
                 var trendLine = Chart.DrawTrendLine(objectName, mainFan.Time1, mainFan.Y1, mainFan.Time2, y2, fanSettings.Color, fanSettings.Thickness, fanSettings.Style);
 
@@ -147,7 +148,7 @@ namespace cAlgo.Patterns
                 trendLine.IsLocked = true;
                 trendLine.ExtendToInfinity = true;
 
-                _sideFanLines[fanSettings.Name] = trendLine;
+                _sideFanLines[fanSettings.Percent] = trendLine;
             }
         }
 
