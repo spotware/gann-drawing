@@ -7,11 +7,13 @@ namespace cAlgo.Helpers
 {
     public interface ILogger
     {
-        Action<string> Print { get; }
-
         void Fatal(Exception exception);
 
         void Log(string text);
+
+        void Print(string text);
+
+        void Print(string format, params object[] args);
     }
 
     public sealed class Logger : ILogger
@@ -37,14 +39,6 @@ namespace cAlgo.Helpers
             Directory.CreateDirectory(_rootDirectoryPath);
 
             _print = print;
-        }
-
-        public Action<string> Print
-        {
-            get
-            {
-                return _print;
-            }
         }
 
         public void Fatal(Exception exception)
@@ -79,6 +73,16 @@ namespace cAlgo.Helpers
 
                 eventWaitHandle.Set();
             }
+        }
+
+        public void Print(string text)
+        {
+            _print(text);
+        }
+
+        public void Print(string format, params object[] args)
+        {
+            Print(string.Format(format, args));
         }
 
         private string GetFilePath()
