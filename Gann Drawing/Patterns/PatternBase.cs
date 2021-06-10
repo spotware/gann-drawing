@@ -153,12 +153,7 @@ namespace cAlgo.Patterns
                     drawingStopped.Invoke(this);
                 }
 
-                Task.Factory.StartNew(() =>
-                {
-                    Thread.Sleep(500);
-
-                    SubscribeToChartObjectsUpdatedEvent();
-                });
+                SubscribeToChartObjectsUpdatedEvent(5);
             });
         }
 
@@ -262,7 +257,7 @@ namespace cAlgo.Patterns
             }
             finally
             {
-                SubscribeToChartObjectsUpdatedEvent();
+                SubscribeToChartObjectsUpdatedEvent(5);
             }
         }
 
@@ -419,13 +414,25 @@ namespace cAlgo.Patterns
             }
         }
 
-        private void SubscribeToChartObjectsUpdatedEvent()
+        private void SubscribeToChartObjectsUpdatedEvent(int delayMilliseconds = 0)
         {
             if (_isSubscribedToChartObjectsUpdatedEvent) return;
 
-            _isSubscribedToChartObjectsUpdatedEvent = true;
+            if (delayMilliseconds == 0)
+            {
+                _isSubscribedToChartObjectsUpdatedEvent = true;
 
-            Chart.ObjectsUpdated += Chart_ObjectsUpdated;
+                Chart.ObjectsUpdated += Chart_ObjectsUpdated;
+            }
+            else
+            {
+                Task.Factory.StartNew(() =>
+                {
+                    Thread.Sleep(delayMilliseconds);
+
+                    SubscribeToChartObjectsUpdatedEvent();
+                });
+            }
         }
 
         private void UnsubscribeFromChartObjectsUpdatedEvent()
